@@ -78,28 +78,38 @@ static void parse_arguments(const struct p101_env *env, int argc, char *argv[], 
 
     opterr = 0;
 
-    while((opt = p101_getopt(env, argc, argv, "hbdw")) != -1)
+    while((opt = p101_getopt(env, argc, argv, "i:I:p:P:c:")) != -1)
     {
         switch(opt)
         {
-            case 'b':
-            {
-                *bad = true;
-                break;
-            }
-            case 'd':
-            {
-                *did = true;
-                break;
-            }
-            case 'w':
-            {
-                *will = true;
-                break;
-            }
             case 'h':
             {
                 usage(argv[0], EXIT_SUCCESS, NULL);
+            }
+            case 'i':
+            {
+                //save own ip address
+                break;
+            }
+            case 'I':
+            {
+                //save target ip address
+                break;
+            }
+            case 'p':
+            {
+                //save sending port
+                break;
+            }
+            case 'P':
+            {
+                //save receiving port
+                break;
+            }
+            case 'c':
+            {
+                //save controller type
+                break;
             }
             case '?':
             {
@@ -135,12 +145,13 @@ _Noreturn static void usage(const char *program_name, int exit_code, const char 
         fprintf(stderr, "%s\n", message);
     }
 
-    fprintf(stderr, "Usage: %s [-h] [-b] [-d] [-w]\n", program_name);
+    fprintf(stderr, "Usage: %s -i <sending_ip> -I <receiving_ip> -p <sending_port> -P <receiving_port>\n", program_name);
     fputs("Options:\n", stderr);
-    fputs("  -h   Display this help message\n", stderr);
-    fputs("  -b   Display 'bad' transitions\n", stderr);
-    fputs("  -w   Display 'will' transitions 'd'\n", stderr);
-    fputs("  -d   Display 'did' transitions\n", stderr);
+    fputs("  -i  <sending_ip> The IP address of this system\n", stderr);
+    fputs("  -I  <receiving_ip> The IP address of the other connected system\n", stderr);
+    fputs("  -p  <sending_port> The port used to send updates from this system.\n", stderr);
+    fputs("  -P  <receiving_port> The port used to receive updates from the paired system\n", stderr);
+    fputs("  -c  <device type> The device to use: controller or keyboard\n", stderr);
     exit(exit_code);
 }
 
