@@ -1,1 +1,1 @@
-main src/main.c src/display.c include/display.h src/input.c include/input.h src/network.c include/input.h
+nettest src/test.c src/network.c include/network.h
