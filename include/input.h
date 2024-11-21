@@ -5,4 +5,10 @@
 #ifndef INPUT_H
 #define INPUT_H
 
+enum controller_type{
+    CONTROLLER,
+    KEYBOARD,
+    TIMER //May be unused
+}
+
 #endif //INPUT_H

@@ -2,20 +2,107 @@
 #include <p101_posix/p101_unistd.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <arpa/inet.h>
+#include <errno.h>
+#include <inttypes.h>
+#include <netinet/in.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <sys/socket.h>
+#include <unistd.h>
+#include "input.h"
+#include "network.h"
 
 static void             parse_arguments(const struct p101_env *env, int argc, char *argv[], bool *bad, bool *will, bool *did);
 _Noreturn static void   usage(const char *program_name, int exit_code, const char *message);
-static p101_fsm_state_t a(const struct p101_env *env, struct p101_error *err, void *arg);
-static p101_fsm_state_t b(const struct p101_env *env, struct p101_error *err, void *arg);
-static p101_fsm_state_t c(const struct p101_env *env, struct p101_error *err, void *arg);
-static p101_fsm_state_t state_error(const struct p101_env *env, struct p101_error *err, void *arg);
+static p101_fsm_state_t init(const struct p101_env *env, struct p101_error *err, void *arg);
+static p101_fsm_state_t setup_input_source(const struct p101_env *env, struct p101_error *err, void *arg);
+static p101_fsm_state_t setup_controller(const struct p101_env *env, struct p101_error *err, void *arg);
+static p101_fsm_state_t setup_keyboard(const struct p101_env *env, struct p101_error *err, void *arg);
+static p101_fsm_state_t create_sending_stream(const struct p101_env *env, struct p101_error *err, void *arg);
+static p101_fsm_state_t create_receiving_stream(const struct p101_env *env, struct p101_error *err, void *arg);
+static p101_fsm_state_t setup_window(const struct p101_env *env, struct p101_error *err, void *arg);
+static p101_fsm_state_t await_input(const struct p101_env *env, struct p101_error *err, void *arg);
+static p101_fsm_state_t read_controller(const struct p101_env *env, struct p101_error *err, void *arg);
+static p101_fsm_state_t read_network(const struct p101_env *env, struct p101_error *err, void *arg);
+static p101_fsm_state_t send_packet(const struct p101_env *env, struct p101_error *err, void *arg);
+static p101_fsm_state_t handle_packet(const struct p101_env *env, struct p101_error *err, void *arg);
+static p101_fsm_state_t move_node(const struct p101_env *env, struct p101_error *err, void *arg);
+static p101_fsm_state_t refresh_screen(const struct p101_env *env, struct p101_error *err, void *arg);
+static p101_fsm_state_t usage(const struct p101_env *env, struct p101_error *err, void *arg);
+static p101_fsm_state_t shutdown(const struct p101_env *env, struct p101_error *err, void *arg);
 
 enum application_states
 {
-    A = P101_FSM_USER_START,    // 2
-    B,
-    C,
+    INIT = P101_FSM_USER_START,    // 2
+    INPUT_SETUP,    // 2
+    SETUP_CONTROLLER,
+    SETUP_KEYBOARD,
+    CREATE_SENDING_STREAM,
+    CREATE_RECEIVING_STREAM,
+    SETUP_WINDOW,
+    AWAIT_INPUT,
+    READ_CONTROLLER,
+    READ_NETWORK,
+    SEND_PACKET,
+    HANDLE_PACKET,
+    MOVE_NODE,
+    REFRESH_SCREEN,
+    USAGE,
+    SHUTDOWN,
     ERROR,
+};
+
+struct arguments
+{
+	char *sys_addr;
+    ssize_t sys_addr_len;
+    char *sys_port;
+    char *target_addr;
+    ssize_t target_addr_len;
+    char *target_port;
+    char controller_type;
+    //Controller type, joystick, keyboard, etc...
+};
+
+struct input_state
+{
+    enum controller_type controller;
+};
+
+struct network_state
+{
+	int send_fd;
+    struct sockaddr_storage *send_addr;
+    socklen_t send_addr_len;
+    in_port_t send_port;
+    int receive_fd;
+    struct sockaddr_storage *receive_addr;
+    socklen_t receive_addr_len;
+    in_port_t receive_port;
+    int current_move;
+};
+
+struct board_state
+{
+	int length;
+    int width;
+    int host_x;
+    int host_y;
+    char host_char;
+    int net_x;
+    int net_y;
+    char net_char;
+};
+
+struct context
+{
+	struct arguments arg;
+	struct input_state input;
+    struct network_state network;
+    struct board_state board;
 };
 
 #define UNKNOWN_OPTION_MESSAGE_LEN 24
@@ -48,9 +135,9 @@ int main(int argc, char *argv[])
     else
     {
         static struct p101_fsm_transition transitions[] = {
-            {P101_FSM_INIT, A,             a          },
-            {A,             B,             b          },
-            {B,             C,             c          },
+            {P101_FSM_INIT, INIT,          init               },
+            {INIT,          INPUT_SETUP,   setup_input_source },
+            {INPUT_SETUP,   C,             c                  },
             {C,             A,             a          },
             {C,             ERROR,         state_error},
             {ERROR,         P101_FSM_EXIT, NULL       }

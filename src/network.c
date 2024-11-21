@@ -3,6 +3,7 @@
 //
 
 #include "network.h"
+#include <SDL2/SDL.h>
 
 #define BASE_TEN 10
 
@@ -122,35 +123,6 @@ void socket_bind(int sockfd, struct sockaddr_storage *addr, in_port_t port)
     printf("Bound to socket: %s:%u\n", addr_str, port);
 }
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wunused-parameter"
-
-// cppcheck-suppress constParameterPointer
-ssize_t handle_packet(int client_sockfd, struct sockaddr_storage *client_addr, char *buffer, ssize_t buffer_len, socklen_t client_addr_len)
-{
-    ssize_t       total_received = 0;
-    const ssize_t msg_size       = 11;
-
-    while(total_received < msg_size)
-    {
-        ssize_t bytes_received = 0;
-        bytes_received         = recvfrom(client_sockfd, &buffer[total_received], (size_t)buffer_len, 0, (struct sockaddr *)&client_addr, &client_addr_len);
-
-        if(bytes_received == -1)
-        {
-            perror("recvfrom");
-            continue;
-        }
-        total_received += bytes_received;
-    }
-    buffer[(size_t)total_received] = '\0';
-    printf("Sent %zu bytes: \"%s\"\n", (size_t)total_received, buffer);
-
-    return total_received;
-}
-
-#pragma GCC diagnostic pop
-
 void socket_close(int sockfd)
 {
     if(close(sockfd) == -1)
@@ -206,7 +178,34 @@ int create_receiving_stream(const char *address, const char *port, struct sockad
     return sockfd;
 }
 
-ssize_t send_packet(int server_fd, struct sockaddr_storage *server_addr, const char *message, const ssize_t msg_len, socklen_t server_addr_len)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
+
+// cppcheck-suppress constParameterPointer
+ssize_t handle_packet(int client_sockfd, struct sockaddr_storage *client_addr, void *buffer, ssize_t buffer_len, socklen_t client_addr_len)
+{
+    ssize_t       total_received = 0;
+    const ssize_t msg_size       = 11;
+
+    while(total_received < msg_size)
+    {
+        ssize_t bytes_received = 0;
+        bytes_received         = recvfrom(client_sockfd, &((char *)buffer)[total_received], (size_t)buffer_len, 0, (struct sockaddr *)&client_addr, &client_addr_len);
+
+        if(bytes_received == -1)
+        {
+            perror("recvfrom");
+            exit(EXIT_FAILURE);
+        }
+        total_received += bytes_received;
+    }
+
+    return total_received;
+}
+
+#pragma GCC diagnostic pop
+
+ssize_t send_packet(int server_fd, struct sockaddr_storage *server_addr, const void *message, const ssize_t msg_len, socklen_t server_addr_len)
 {
     ssize_t                bytes_sent = 0;
     ssize_t                total_sent = 0;
@@ -214,7 +213,7 @@ ssize_t send_packet(int server_fd, struct sockaddr_storage *server_addr, const c
 
     while(total_sent < msg_len)
     {
-        bytes_sent = sendto(server_fd, &message[total_sent], strlen(message), 0, send_addr, server_addr_len);
+        bytes_sent = sendto(server_fd, &((const char *)message)[total_sent], (size_t)msg_len, 0, send_addr, server_addr_len);
 
         if(bytes_sent == -1)
         {
@@ -224,7 +223,21 @@ ssize_t send_packet(int server_fd, struct sockaddr_storage *server_addr, const c
         total_sent += bytes_sent;
     }
 
-    printf("Sent %zu bytes: \"%s\"\n", (size_t)bytes_sent, message);
-
     return bytes_sent;
+}
+
+ssize_t handle_dir_packet(int client_sockfd, struct sockaddr_storage *client_addr, uint16_t *direction, socklen_t client_addr_len)
+{
+    ssize_t received = handle_packet(client_sockfd, client_addr, direction, sizeof(int), client_addr_len);
+
+    *direction = ntohs(*direction);
+
+    return received;
+}
+
+ssize_t send_dir_packet(int server_fd, struct sockaddr_storage *server_addr, uint16_t *direction, socklen_t server_addr_len)
+{
+    *direction = ntohs(*direction);
+
+    return send_packet(server_fd, server_addr, direction, sizeof(int), server_addr_len);
 }
