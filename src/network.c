@@ -129,13 +129,12 @@ void socket_bind(int sockfd, struct sockaddr_storage *addr, in_port_t port)
 ssize_t handle_packet(int client_sockfd, struct sockaddr_storage *client_addr, char *buffer, ssize_t buffer_len, socklen_t client_addr_len)
 {
     ssize_t       total_received = 0;
-    const ssize_t msg_size       = 7;
+    const ssize_t msg_size       = 11;
 
     while(total_received < msg_size)
     {
         ssize_t bytes_received = 0;
-        sleep(1);
-        bytes_received = recvfrom(client_sockfd, &buffer[total_received], (size_t)buffer_len, 0, (struct sockaddr *)&client_addr, &client_addr_len);
+        bytes_received         = recvfrom(client_sockfd, &buffer[total_received], (size_t)buffer_len, 0, (struct sockaddr *)&client_addr, &client_addr_len);
 
         if(bytes_received == -1)
         {
