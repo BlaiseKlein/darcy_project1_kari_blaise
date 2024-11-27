@@ -36,20 +36,30 @@ void shutdownWindow(void)
     endwin();
 }
 
-void move_node(struct player *player, int move, int row, int col) {
-    if (move == UP) {
+void move_node(struct player *player, int move, int row, int col)
+{
+    if(move == UP)
+    {
         player->y++;
-    } else if (move == DOWN) {
+    }
+    else if(move == DOWN)
+    {
         player->y--;
-    } else if (move == LEFT) {
+    }
+    else if(move == LEFT)
+    {
         player->x--;
-    } else if (move == RIGHT) {
+    }
+    else if(move == RIGHT)
+    {
         player->x++;
     }
-    if (check_bound_collision(player, row, col)) {
+    if(check_bound_collision(player, row, col))
+    {
         mvprintw(0, 0, "Collision detected! Player reset.");
-        player->x = row/2;
-        player->y = col/2;;
+        player->x = row / 2;
+        player->y = col / 2;
+        ;
     }
 }
 
@@ -61,9 +71,10 @@ void refresh_screen(struct player a, struct player b)
     refresh();
 }
 
-
-bool check_bound_collision(struct player *p, int row, int col) {
-    if (p->x < 0 || p->x >= row || p->y < 0 || p->y >= col) {
+bool check_bound_collision(struct player *p, int row, int col)
+{
+    if(p->x < 0 || p->x >= row || p->y < 0 || p->y >= col)
+    {
         return true;
     }
     return false;
