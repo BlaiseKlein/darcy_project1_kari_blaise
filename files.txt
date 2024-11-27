@@ -1,1 +1,1 @@
-nettest src/test.c src/network.c include/network.h
+nettest src/test.c src/network.c include/network.h src/display.c include/display.h ncurses

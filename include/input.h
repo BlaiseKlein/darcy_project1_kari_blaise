@@ -9,6 +9,6 @@ enum controller_type{
     CONTROLLER,
     KEYBOARD,
     TIMER //May be unused
-}
+};
 
 #endif //INPUT_H
