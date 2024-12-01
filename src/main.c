@@ -10,80 +10,12 @@
 #include <string.h>
 #include <sys/socket.h>
 #include <unistd.h>
+#include "app_types.h"
+#include <SDL2/SDL.h>
+
 
 // #include "input.h"
 // #include "network.h"
-
-enum application_states
-{
-    INIT = P101_FSM_USER_START,    // 2
-    INPUT_SETUP,                   // 2
-    SETUP_CONTROLLER,
-    SETUP_KEYBOARD,
-    CREATE_SENDING_STREAM,
-    CREATE_RECEIVING_STREAM,
-    SETUP_WINDOW,
-    AWAIT_INPUT,
-    READ_CONTROLLER,
-    READ_NETWORK,
-    SEND_PACKET,
-    HANDLE_PACKET,
-    MOVE_NODE,
-    REFRESH_SCREEN,
-    SAFE_CLOSE,
-    ERROR,
-};
-
-struct arguments
-{
-    char *sys_addr;
-    // ssize_t sys_addr_len;
-    char *sys_port;
-    char *target_addr;
-    // ssize_t target_addr_len;
-    char *target_port;
-    // char    controller_type;
-    // Controller type, joystick, keyboard, etc...
-};
-
-struct input_state
-{
-    //    enum controller_type controller;
-    char *type;
-};
-
-struct network_state
-{
-    int send_fd;
-    // struct sockaddr_storage *send_addr;
-    // socklen_t                send_addr_len;
-    // in_port_t                send_port;
-    // int                      receive_fd;
-    // struct sockaddr_storage *receive_addr;
-    // socklen_t                receive_addr_len;
-    // in_port_t                receive_port;
-    // int                      current_move;
-};
-
-struct board_state
-{
-    int length;
-    // int  width;
-    // int  host_x;
-    // int  host_y;
-    // char host_char;
-    // int  net_x;
-    // int  net_y;
-    // char net_char;
-};
-
-struct context
-{
-    struct arguments     arg;
-    struct input_state   input;
-    struct network_state network;
-    struct board_state   board;
-};
 
 #define UNKNOWN_OPTION_MESSAGE_LEN 24
 
@@ -268,7 +200,7 @@ _Noreturn static void usage(const char *program_name, int exit_code, const char 
 
 static p101_fsm_state_t init(const struct p101_env *env, struct p101_error *err, void *arg)
 {
-    printf("Init");
+    printf("Init\n");
 
     return INPUT_SETUP;
 }
@@ -280,7 +212,7 @@ static p101_fsm_state_t init(const struct p101_env *env, struct p101_error *err,
 
 static p101_fsm_state_t setup_input_source(const struct p101_env *env, struct p101_error *err, void *arg)
 {
-    printf("setup_input_source");
+    printf("setup_input_source\n");
 
     return SETUP_CONTROLLER;
 }
@@ -292,7 +224,7 @@ static p101_fsm_state_t setup_input_source(const struct p101_env *env, struct p1
 
 static p101_fsm_state_t setup_controller(const struct p101_env *env, struct p101_error *err, void *arg)
 {
-    printf("setup_controller");
+    printf("setup_controller\n");
 
     return CREATE_SENDING_STREAM;
 }
@@ -304,7 +236,7 @@ static p101_fsm_state_t setup_controller(const struct p101_env *env, struct p101
 
 static p101_fsm_state_t setup_keyboard(const struct p101_env *env, struct p101_error *err, void *arg)
 {
-    printf("setup_keyboard");
+    printf("setup_keyboard\n");
 
     return CREATE_SENDING_STREAM;
 }
@@ -316,7 +248,7 @@ static p101_fsm_state_t setup_keyboard(const struct p101_env *env, struct p101_e
 
 static p101_fsm_state_t create_sending_stream(const struct p101_env *env, struct p101_error *err, void *arg)
 {
-    printf("create_sending_stream");
+    printf("create_sending_stream\n");
 
     ((struct context *)arg)->network.send_fd = 1;
 
@@ -330,7 +262,7 @@ static p101_fsm_state_t create_sending_stream(const struct p101_env *env, struct
 
 static p101_fsm_state_t create_receiving_stream(const struct p101_env *env, struct p101_error *err, void *arg)
 {
-    printf("create_receiving_stream");
+    printf("create_receiving_stream\n");
 
     return SETUP_WINDOW;
 }
@@ -342,7 +274,7 @@ static p101_fsm_state_t create_receiving_stream(const struct p101_env *env, stru
 
 static p101_fsm_state_t setup_window(const struct p101_env *env, struct p101_error *err, void *arg)
 {
-    printf("setup_window");
+    printf("setup_window\n");
 
     ((struct context *)arg)->board.length = 1;
 
@@ -356,7 +288,12 @@ static p101_fsm_state_t setup_window(const struct p101_env *env, struct p101_err
 
 static p101_fsm_state_t await_input(const struct p101_env *env, struct p101_error *err, void *arg)
 {
-    printf("await_input");
+    printf("await_input\n");
+
+    if(((struct context *)arg)->board.length == 2)
+    {
+        return SAFE_CLOSE;
+    }
 
     return READ_CONTROLLER;
 }
@@ -368,7 +305,7 @@ static p101_fsm_state_t await_input(const struct p101_env *env, struct p101_erro
 
 static p101_fsm_state_t read_controller(const struct p101_env *env, struct p101_error *err, void *arg)
 {
-    printf("read_controller");
+    printf("read_controller\n");
 
     return SEND_PACKET;
 }
@@ -380,7 +317,7 @@ static p101_fsm_state_t read_controller(const struct p101_env *env, struct p101_
 
 static p101_fsm_state_t read_network(const struct p101_env *env, struct p101_error *err, void *arg)
 {
-    printf("read_network");
+    printf("read_network\n");
 
     return HANDLE_PACKET;
 }
@@ -392,7 +329,7 @@ static p101_fsm_state_t read_network(const struct p101_env *env, struct p101_err
 
 static p101_fsm_state_t send_packet(const struct p101_env *env, struct p101_error *err, void *arg)
 {
-    printf("send_packet");
+    printf("send_packet\n");
 
     return MOVE_NODE;
 }
@@ -404,7 +341,7 @@ static p101_fsm_state_t send_packet(const struct p101_env *env, struct p101_erro
 
 static p101_fsm_state_t handle_packet(const struct p101_env *env, struct p101_error *err, void *arg)
 {
-    printf("handle_packet");
+    printf("handle_packet\n");
 
     return MOVE_NODE;
 }
@@ -416,7 +353,9 @@ static p101_fsm_state_t handle_packet(const struct p101_env *env, struct p101_er
 
 static p101_fsm_state_t move_node(const struct p101_env *env, struct p101_error *err, void *arg)
 {
-    printf("move_node");
+    printf("move_node\n");
+
+    ((struct context *)arg)->board.length = 2;
 
     return REFRESH_SCREEN;
 }
@@ -428,7 +367,7 @@ static p101_fsm_state_t move_node(const struct p101_env *env, struct p101_error 
 
 static p101_fsm_state_t refresh_screen(const struct p101_env *env, struct p101_error *err, void *arg)
 {
-    printf("refresh_screen");
+    printf("refresh_screen\n");
 
     return AWAIT_INPUT;
 }
@@ -440,7 +379,7 @@ static p101_fsm_state_t refresh_screen(const struct p101_env *env, struct p101_e
 
 static p101_fsm_state_t safe_close(const struct p101_env *env, struct p101_error *err, void *arg)
 {
-    printf("safe_close");
+    printf("safe_close\n");
 
     return P101_FSM_EXIT;
 }
@@ -452,7 +391,7 @@ static p101_fsm_state_t safe_close(const struct p101_env *env, struct p101_error
 
 static p101_fsm_state_t error_state(const struct p101_env *env, struct p101_error *err, void *arg)
 {
-    printf("error_state");
+    printf("error_state\n");
 
     return P101_FSM_EXIT;
 }
