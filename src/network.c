@@ -4,8 +4,11 @@
 
 #include "network.h"
 #include <SDL2/SDL.h>
+#include <ncurses.h>
+#include <input.h>
 
 #define BASE_TEN 10
+#define READYTOSENDMSG 2
 
 in_port_t parse_in_port_t(const char *str, int *err)
 {
@@ -319,10 +322,11 @@ static p101_fsm_state_t send_packet(const struct p101_env *env, struct p101_erro
     ssize_t                bytes_sent = 0;
     ssize_t                total_sent = 0;
     const struct sockaddr *send_addr  = (struct sockaddr *)ctx->network.send_addr;
+    const int ready_message = htons(READYTOSENDMSG);
 
-    while(total_sent < ctx->network.msg_size)
+    while(total_sent < sizeof(ready_message))
     {
-        bytes_sent = sendto(ctx->network.send_fd, &((const char *)ctx->input.direction)[total_sent], (size_t)ctx->network.msg_size, 0, send_addr, ctx->network.send_addr_len);
+        bytes_sent = sendto(ctx->network.send_fd, &((const char *)ready_message)[total_sent], sizeof(ready_message) - total_sent, 0, send_addr, ctx->network.send_addr_len);
 
         if(bytes_sent == -1)
         {
@@ -331,7 +335,22 @@ static p101_fsm_state_t send_packet(const struct p101_env *env, struct p101_erro
         total_sent += bytes_sent;
     }
 
-    return MOVE_NODE;
+    total_sent = 0;
+
+    while(total_sent < ctx->network.msg_size)
+    {
+        bytes_sent = sendto(ctx->network.send_fd, &((const char *)ctx->input.direction)[total_sent], (size_t)ctx->network.msg_size - total_sent, 0, send_addr, ctx->network.send_addr_len);
+
+        if(bytes_sent == -1)
+        {
+            return ERROR;
+        }
+        total_sent += bytes_sent;
+    }
+
+    ctx->input.direction = ntohs(ctx->input.direction);
+
+    return HANDLE_PACKET;
 }
 
 #pragma GCC diagnostic pop
@@ -343,7 +362,6 @@ static p101_fsm_state_t handle_packet(const struct p101_env *env, struct p101_er
 {
     ssize_t       total_received = 0;
     struct context* ctx = arg;
-
 
     while(total_received < ctx->network.msg_size)
     {
@@ -358,17 +376,21 @@ static p101_fsm_state_t handle_packet(const struct p101_env *env, struct p101_er
         total_received += bytes_received;
     }
 
+    ctx->network.current_move = ntohs(ctx->network.current_move);
+
     return MOVE_NODE;
 }
 
 #pragma GCC diagnostic pop
 
-
+//DEPRECATED DONT USE
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-parameter"
 
+//DEPRECATED DONT USE
 static p101_fsm_state_t await_input(const struct p101_env *env, struct p101_error *err, void *arg)
 {
+    //DEPRECATED DONT USE
     SDL_Event event;
     int activity;
     fd_set readfds;
@@ -377,10 +399,24 @@ static p101_fsm_state_t await_input(const struct p101_env *env, struct p101_erro
 
     while(1)
     {
+        enum move_direction key_move;
+
+        //Reading keyboard
+
+        key_move = getKeyboardInput();
+        if (key_move != NONE)
+        {
+            return READ_KEYBOARD;
+        }
+
+        //Reading controller
         if(SDL_PollEvent(&event))
         {
             return READ_CONTROLLER;
         }
+
+        //Reading network
+
         // Clear the socket set
         #ifndef __clang_analyzer__
         FD_ZERO(&readfds);
@@ -397,12 +433,78 @@ static p101_fsm_state_t await_input(const struct p101_env *env, struct p101_erro
         #endif
 
         activity = select(max_fds, &readfds, NULL, NULL, NULL);
-        if (activity > -1)
+        if (activity > 0)
         {
             return READ_NETWORK;
         }
     }
     return ERROR;
+}
+
+#pragma GCC diagnostic pop //END OF DEPRECATED
+
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
+
+static p101_fsm_state_t read_input(const struct p101_env *env, struct p101_error *err, void *arg)
+{
+    struct context* ctx = arg;
+
+    ctx->input_rdy = 0;
+    ctx->net_rdy = 0;
+
+    if (ctx->input.type == KEYBOARD)
+    {
+        return READ_KEYBOARD;
+    } else if (ctx->input.type == CONTROLLER)
+    {
+        return READ_CONTROLLER;
+    } else
+    {
+        return ERROR;
+    }
+}
+
+#pragma GCC diagnostic pop
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
+
+static p101_fsm_state_t read_network(const struct p101_env *env, struct p101_error *err, void *arg)
+{
+    ssize_t       total_received = 0;
+    struct context* ctx = arg;
+    uint16_t received = 0;
+
+    ssize_t bytes_received = 0;
+    bytes_received         = recvfrom(ctx->network.receive_fd, &received,
+        sizeof(received), 0, (struct sockaddr *)&ctx->network.receive_addr, &ctx->network.receive_addr_len);
+
+    if(bytes_received == -1)
+    {
+        return ERROR;
+    }
+
+    if (ntohs(received) == READYTOSENDMSG)
+    {
+        ctx->net_rdy = 1;
+    }
+
+    if (ctx->input_rdy == 0 && ctx->net_rdy == 0)
+    {
+        return READ_INPUT;
+    }
+
+    if (ctx->net_rdy == 0)
+    {
+        return HANDLE_PACKET;
+    }
+
+    if (ctx->input_rdy == 0)
+    {
+        return SEND_PACKET;
+    }
 }
 
 #pragma GCC diagnostic pop

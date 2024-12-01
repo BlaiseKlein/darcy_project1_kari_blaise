@@ -45,7 +45,10 @@
 
 enum move_direction getKeyboardInput(void)
 {
-    int ch = getch();
+    int ch;
+    nodelay(stdscr, TRUE);
+
+    ch = getch();
     switch(ch)
     {
         case KEY_UP:
