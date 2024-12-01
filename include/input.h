@@ -5,10 +5,11 @@
 #ifndef INPUT_H
 #define INPUT_H
 
-enum controller_type{
-    CONTROLLER,
-    KEYBOARD,
-    TIMER //May be unused
-};
+#include "app_types.h"
+#include <SDL2/SDL.h>
+#include <stdio.h>
 
-#endif //INPUT_H
+SDL_GameController *setUpController(void);
+enum move_direction getControllerInput(SDL_Event *event);
+enum move_direction getKeyboardInput(void);
+#endif    // INPUT_H

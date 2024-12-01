@@ -84,5 +84,18 @@ struct context
     int err;
 };
 
+enum controller_type{
+    CONTROLLER,
+    KEYBOARD,
+    TIMER //May be unused
+};
+enum move_direction
+{
+    DOWN,
+    RIGHT,
+    LEFT,
+    UP,
+    NONE
+};
 
 #endif //APP_TYPES_H

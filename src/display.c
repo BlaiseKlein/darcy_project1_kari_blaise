@@ -8,27 +8,31 @@
 #define COL_SCALE_B 1
 #define SCALE_DIVISOR 10
 
-#define UP 0
-#define DOWN 1
-#define LEFT 2
-#define RIGHT 3
-
-void setupWindow(int row, int col)
+void setupWindow(struct board_state *board, int *row, int *col)
 {
-    struct player a;
-    struct player b;
     initscr();
+    cbreak();
+    noecho();
+    keypad(stdscr, TRUE);
     curs_set(0);    //  hides the cursor
     getmaxyx(stdscr, row, col);
-    clear();
 
-    a = (struct player){.x = row - (row * ROW_SCALE_A / SCALE_DIVISOR), .y = col - (col * COL_SCALE_A / SCALE_DIVISOR), .ch = "X"};
+    board->length = *row;
+    board->width  = *col;
 
-    b = (struct player){.x = row - (row * ROW_SCALE_B / SCALE_DIVISOR), .y = col - (col * COL_SCALE_B / SCALE_DIVISOR), .ch = "O"};
-    mvprintw(a.x, a.y, "%s", a.ch);
-    mvprintw(b.x, b.y, "%s", b.ch);
+    board->host_x = *row - (*row * ROW_SCALE_A / SCALE_DIVISOR);
+    board->host_y = *col - (*col * COL_SCALE_A / SCALE_DIVISOR);
+    board->net_x  = *row - (*row * ROW_SCALE_B / SCALE_DIVISOR);
+    board->net_y  = *col - (*col * COL_SCALE_B / SCALE_DIVISOR);
+
+    board->host_char = 'X';
+    board->net_char  = 'O';
+
+    mvprintw(board->host_x, board->host_y, board->host_char);
+    mvprintw(board->net_x, board->net_y, board->net_char);
+
     refresh();
-    getch();
+    // getch();
 }
 
 void shutdownWindow(void)
@@ -36,46 +40,48 @@ void shutdownWindow(void)
     endwin();
 }
 
-void move_node(struct player *player, int move, int row, int col)
+void move_node(struct board_state *board, enum move_direction move, bool is_host)
 {
-    if(move == UP)
+    int *x = is_host ? &board->host_x : &board->net_x;
+    int *y = is_host ? &board->host_y : &board->net_y;
+
+    switch(move)
     {
-        player->y++;
+        case UP:
+            *x += 2;
+            break;
+        case DOWN:
+            *x -= 2;
+            break;
+        case LEFT:
+            *y -= 2;
+            break;
+        case RIGHT:
+            *y += 2;
+            break;
+        default:
+            break;
     }
-    else if(move == DOWN)
-    {
-        player->y--;
-    }
-    else if(move == LEFT)
-    {
-        player->x--;
-    }
-    else if(move == RIGHT)
-    {
-        player->x++;
-    }
-    if(check_bound_collision(player, row, col))
+
+    if(check_bound_collision(*x, *y, board->length, board->width))
     {
         mvprintw(0, 0, "Collision detected! Player reset.");
-        player->x = row / 2;
-        player->y = col / 2;
+        *x = board->length / 2;
+        *y = board->width / 2;
         ;
     }
+    refresh_screen(board);
 }
 
-void refresh_screen(struct player a, struct player b)
+void refresh_screen(struct board_state *board)
 {
     clear();
-    mvprintw(a.x, a.y, "%s", a.ch);
-    mvprintw(b.x, b.y, "%s", b.ch);
+    mvaddch(board->host_x, board->host_y, board->host_char);
+    mvaddch(board->net_x, board->net_y, board->net_char);
     refresh();
 }
 
-bool check_bound_collision(struct player *p, int row, int col)
+bool check_bound_collision(int x, int y, int row, int col)
 {
-    if(p->x < 0 || p->x >= row || p->y < 0 || p->y >= col)
-    {
-        return true;
-    }
-    return false;
+    return (x < 0 || x >= row || y < 0 || y >= col);
 }

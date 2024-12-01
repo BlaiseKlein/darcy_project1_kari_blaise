@@ -4,19 +4,13 @@
 
 #ifndef DISPLAY_H
 #define DISPLAY_H
+#include "app_types.h"
 #include <stdbool.h>
 
-struct player
-{
-    int         x;
-    int         y;
-    const char *ch;
-};
-
-void setupWindow(int row, int col);
+void setupWindow(struct board_state *board, int *row, int *col);
 void shutdownWindow(void);
-void move_node(void);
-void refresh_screen(struct player a, struct player b);
-bool check_bound_collision(struct player *p, int row, int col)
+void move_node(struct board_state *board, int move, bool is_host);
+void refresh_screen(struct board_state *board);
+bool check_bound_collision(int x, int y, int row, int col);
 
 #endif    // DISPLAY_H
