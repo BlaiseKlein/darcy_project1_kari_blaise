@@ -28,8 +28,9 @@ static p101_fsm_state_t setup_keyboard(const struct p101_env *env, struct p101_e
 static p101_fsm_state_t create_sending_stream(const struct p101_env *env, struct p101_error *err, void *arg);
 static p101_fsm_state_t create_receiving_stream(const struct p101_env *env, struct p101_error *err, void *arg);
 static p101_fsm_state_t setup_window(const struct p101_env *env, struct p101_error *err, void *arg);
-static p101_fsm_state_t await_input(const struct p101_env *env, struct p101_error *err, void *arg);
+static p101_fsm_state_t read_input(const struct p101_env *env, struct p101_error *err, void *arg);
 static p101_fsm_state_t read_controller(const struct p101_env *env, struct p101_error *err, void *arg);
+static p101_fsm_state_t read_keyboard(const struct p101_env *env, struct p101_error *err, void *arg);
 static p101_fsm_state_t read_network(const struct p101_env *env, struct p101_error *err, void *arg);
 static p101_fsm_state_t send_packet(const struct p101_env *env, struct p101_error *err, void *arg);
 static p101_fsm_state_t handle_packet(const struct p101_env *env, struct p101_error *err, void *arg);
@@ -70,7 +71,7 @@ int main(int argc, char *argv[])
             {SETUP_KEYBOARD,          CREATE_SENDING_STREAM,   create_sending_stream  },
             {CREATE_SENDING_STREAM,   CREATE_RECEIVING_STREAM, create_receiving_stream},
             {CREATE_RECEIVING_STREAM, SETUP_WINDOW,            setup_window           },
-            {SETUP_WINDOW,            AWAIT_INPUT,             await_input            },
+            {SETUP_WINDOW,            READ_INPUT,             read_input            },
             {INIT,                    ERROR,                   error_state            },
             {INPUT_SETUP,             ERROR,                   error_state            },
             {INPUT_SETUP,             ERROR,                   error_state            },
@@ -79,15 +80,18 @@ int main(int argc, char *argv[])
             {CREATE_SENDING_STREAM,   ERROR,                   error_state            },
             {CREATE_RECEIVING_STREAM, ERROR,                   error_state            },
             {SETUP_WINDOW,            ERROR,                   error_state            },
-            {AWAIT_INPUT,             READ_CONTROLLER,         read_controller        },
-            {AWAIT_INPUT,             READ_NETWORK,            read_network           },
-            {READ_CONTROLLER,         SEND_PACKET,             send_packet            },
+            {READ_INPUT,             READ_CONTROLLER,         read_controller        },
+            {READ_INPUT,             READ_KEYBOARD,            read_keyboard           },
+            {READ_KEYBOARD,            READ_NETWORK,             read_network            },
+            {READ_CONTROLLER,         READ_NETWORK,             read_network            },
             {READ_NETWORK,            HANDLE_PACKET,           handle_packet          },
-            {SEND_PACKET,             MOVE_NODE,               move_node              },
+            {READ_NETWORK,            SEND_PACKET,           send_packet          },
+            {READ_NETWORK,            READ_INPUT,           read_input          },
+            {SEND_PACKET,             HANDLE_PACKET,               handle_packet              },
             {HANDLE_PACKET,           MOVE_NODE,               move_node              },
             {MOVE_NODE,               REFRESH_SCREEN,          refresh_screen         },
-            {REFRESH_SCREEN,          AWAIT_INPUT,             await_input            },
-            {AWAIT_INPUT,             SAFE_CLOSE,              safe_close             },
+            {REFRESH_SCREEN,          READ_INPUT,             read_input            },
+            {READ_INPUT,             SAFE_CLOSE,              safe_close             },
             {ERROR,                   P101_FSM_EXIT,           NULL                   },
             {SAFE_CLOSE,              P101_FSM_EXIT,           NULL                   }
         };

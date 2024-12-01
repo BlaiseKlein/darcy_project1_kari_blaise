@@ -34,5 +34,7 @@ static p101_fsm_state_t create_receiving_stream(const struct p101_env *env, stru
 static p101_fsm_state_t send_packet(const struct p101_env *env, struct p101_error *err, void *arg);
 static p101_fsm_state_t handle_packet(const struct p101_env *env, struct p101_error *err, void *arg);
 static p101_fsm_state_t await_input(const struct p101_env *env, struct p101_error *err, void *arg);
+static p101_fsm_state_t read_network(const struct p101_env *env, struct p101_error *err, void *arg);
+static p101_fsm_state_t read_input(const struct p101_env *env, struct p101_error *err, void *arg);
 
 #endif    // NETWORK_H

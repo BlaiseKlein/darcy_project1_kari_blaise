@@ -19,8 +19,9 @@ enum application_states
     CREATE_SENDING_STREAM,
     CREATE_RECEIVING_STREAM,
     SETUP_WINDOW,
-    AWAIT_INPUT,
+    READ_INPUT,
     READ_CONTROLLER,
+    READ_KEYBOARD,
     READ_NETWORK,
     SEND_PACKET,
     HANDLE_PACKET,
@@ -28,6 +29,20 @@ enum application_states
     REFRESH_SCREEN,
     SAFE_CLOSE,
     ERROR,
+};
+
+enum controller_type{
+    CONTROLLER,
+    KEYBOARD,
+    TIMER //May be unused
+};
+enum move_direction
+{
+    DOWN,
+    RIGHT,
+    LEFT,
+    UP,
+    NONE
 };
 
 struct arguments
@@ -45,7 +60,7 @@ struct arguments
 struct input_state
 {
     //    enum controller_type controller;
-    char *type;
+    enum controller_type type;
     int direction;
 };
 
@@ -82,20 +97,8 @@ struct context
     struct network_state network;
     struct board_state   board;
     int err;
-};
-
-enum controller_type{
-    CONTROLLER,
-    KEYBOARD,
-    TIMER //May be unused
-};
-enum move_direction
-{
-    DOWN,
-    RIGHT,
-    LEFT,
-    UP,
-    NONE
+    int input_rdy;
+    int net_rdy;
 };
 
 #endif //APP_TYPES_H
