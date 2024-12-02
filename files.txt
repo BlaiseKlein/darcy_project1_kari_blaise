@@ -1,1 +1,1 @@
-kari src/main.c src/display.c include/display.h src/input.c include/input.h ncurses
+game src/main.c src/network.c include/network.h src/display.c include/display.h src/input.c include/input.h include/app_types.h ncurses SDL2 p101_env p101_error p101_fsm p101_posix

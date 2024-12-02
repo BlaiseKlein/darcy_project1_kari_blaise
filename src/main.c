@@ -23,8 +23,6 @@ void                    handle_signal(int signal);
 static void             parse_arguments(const struct p101_env *env, int argc, char *argv[], struct context *ctx);
 _Noreturn static void   usage(const char *program_name, int exit_code, const char *message);
 static p101_fsm_state_t init(const struct p101_env *env, struct p101_error *err, void *arg);
-static p101_fsm_state_t read_controller(const struct p101_env *env, struct p101_error *err, void *arg);
-static p101_fsm_state_t read_keyboard(const struct p101_env *env, struct p101_error *err, void *arg);
 static p101_fsm_state_t safe_close(const struct p101_env *env, struct p101_error *err, void *arg);
 static p101_fsm_state_t error_state(const struct p101_env *env, struct p101_error *err, void *arg);
 
@@ -152,7 +150,7 @@ static void parse_arguments(const struct p101_env *env, int argc, char *argv[], 
             case 'c':
             {
                 // save controller type
-                char *input_type = optarg;
+                const char *input_type = optarg;
                 if(input_type == NULL)
                 {
                     usage(argv[0], EXIT_SUCCESS, "-c requires either \"keyboard\" or \"controller\" as an input");
@@ -216,30 +214,13 @@ _Noreturn static void usage(const char *program_name, int exit_code, const char 
 
 static p101_fsm_state_t init(const struct p101_env *env, struct p101_error *err, void *arg)
 {
-    struct context *ctx = (struct context *)arg;
+    const struct context *ctx = (struct context *)arg;
 
     if(ctx->input.type == KEYBOARD)
     {
         return CREATE_SENDING_STREAM;
     }
-    else
-    {
-        return SETUP_CONTROLLER;
-    }
-}
-
-#pragma GCC diagnostic pop
-
-#pragma GCC diagnostic pop
-
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wunused-parameter"
-
-static p101_fsm_state_t read_controller(const struct p101_env *env, struct p101_error *err, void *arg)
-{
-    printf("read_controller\n");
-
-    return SEND_PACKET;
+    return SETUP_CONTROLLER;
 }
 
 #pragma GCC diagnostic pop
@@ -249,30 +230,7 @@ static p101_fsm_state_t read_controller(const struct p101_env *env, struct p101_
 
 static p101_fsm_state_t safe_close(const struct p101_env *env, struct p101_error *err, void *arg)
 {
-    struct context        *ctx           = (struct context *)arg;
-    ssize_t                bytes_sent    = 0;
-    ssize_t                total_sent    = 0;
-    const struct sockaddr *send_addr     = (struct sockaddr *)ctx->network.send_addr;
-    const uint16_t         ready_message = htons(CLOSE_CONNECTION_MESSAGE);
-    char                  *sending       = (char *)malloc(sizeof(ready_message));
-    memcpy(sending, &ready_message, sizeof(ready_message));
-
-    while((size_t)total_sent < sizeof(ready_message))
-    {
-        bytes_sent = sendto(ctx->network.send_fd, &sending[total_sent], sizeof(ready_message) - (size_t)total_sent, 0, send_addr, ctx->network.send_addr_len);
-
-        if(bytes_sent == -1)
-        {
-            free(sending);
-            sending = NULL;
-            break;
-        }
-        total_sent += bytes_sent;
-    }
-    if(sending != NULL)
-    {
-        free(sending);
-    }
+    struct context *ctx = (struct context *)arg;
 
     if(ctx != NULL)
     {
@@ -304,16 +262,6 @@ static p101_fsm_state_t state_error(const struct p101_env *env, struct p101_erro
     P101_TRACE(env);
 
     return P101_FSM_EXIT;
-}
-
-#pragma GCC diagnostic pop
-
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wunused-parameter"
-
-static p101_fsm_state_t read_keyboard(const struct p101_env *env, struct p101_error *err, void *arg)
-{
-    return READ_NETWORK;
 }
 
 #pragma GCC diagnostic pop

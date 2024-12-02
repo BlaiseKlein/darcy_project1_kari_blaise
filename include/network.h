@@ -112,18 +112,25 @@ static p101_fsm_state_t create_receiving_stream(const struct p101_env *env, stru
 
 static p101_fsm_state_t send_packet(const struct p101_env *env, struct p101_error *err, void *arg)
 {
-    struct context        *ctx           = (struct context *)arg;
-    ssize_t                bytes_sent    = 0;
-    ssize_t                total_sent    = 0;
-    const struct sockaddr *send_addr     = (struct sockaddr *)ctx->network.send_addr;
-    const uint16_t         ready_message = htons(READYTOSENDMSG);
-    char                  *sending       = (char *)malloc(sizeof(ready_message));
-    memcpy(sending, &ready_message, sizeof(ready_message));
-    ctx->input.direction = ntohs(ctx->input.direction);
-
-    while((size_t)total_sent < sizeof(ready_message))
+    struct context        *ctx = (struct context *)arg;
+    ssize_t                bytes_sent;
+    ssize_t                total_sent     = 0;
+    uint16_t               send_direction = 0;
+    const struct sockaddr *send_addr      = (struct sockaddr *)ctx->network.send_addr;
+    const uint16_t         ready_message  = htons(READYTOSENDMSG);
+    size_t                 msg_size       = sizeof(ready_message);
+    size_t                 msg2_size      = sizeof(send_direction);
+    char                  *sending        = (char *)malloc(msg_size);
+    if(sending == NULL)
     {
-        bytes_sent = sendto(ctx->network.send_fd, &sending[total_sent], sizeof(ready_message) - (size_t)total_sent, 0, send_addr, ctx->network.send_addr_len);
+        return ERROR;
+    }
+    memcpy(sending, &ready_message, msg_size);
+    send_direction = ntohs(ctx->input.direction);
+
+    while((size_t)total_sent < msg_size)
+    {
+        bytes_sent = sendto(ctx->network.send_fd, &sending[total_sent], msg_size - (size_t)total_sent, 0, send_addr, ctx->network.send_addr_len);
 
         if(bytes_sent == -1)
         {
@@ -135,12 +142,16 @@ static p101_fsm_state_t send_packet(const struct p101_env *env, struct p101_erro
 
     total_sent = 0;
     free(sending);
-    sending = (char *)malloc(sizeof(ctx->input.direction));
-    memcpy(sending, &ctx->input.direction, sizeof(ctx->input.direction));
+    sending = (char *)malloc(msg2_size);
+    if(sending == NULL)
+    {
+        return ERROR;
+    }
+    memcpy(sending, &send_direction, msg2_size);
 
     while((size_t)total_sent < ctx->network.msg_size)
     {
-        bytes_sent = sendto(ctx->network.send_fd, &sending[total_sent], (size_t)ctx->network.msg_size - (size_t)total_sent, 0, send_addr, ctx->network.send_addr_len);
+        bytes_sent = sendto(ctx->network.send_fd, &sending[total_sent], ctx->network.msg_size - (size_t)total_sent, 0, send_addr, ctx->network.send_addr_len);
 
         if(bytes_sent == -1)
         {
@@ -155,10 +166,7 @@ static p101_fsm_state_t send_packet(const struct p101_env *env, struct p101_erro
     {
         return HANDLE_PACKET;
     }
-    else
-    {
-        return SYNC_NODES;
-    }
+    return SYNC_NODES;
 }
 
 #pragma GCC diagnostic pop
@@ -170,8 +178,14 @@ static p101_fsm_state_t handle_packet(const struct p101_env *env, struct p101_er
 {
     ssize_t         total_received = 0;
     struct context *ctx            = (struct context *)arg;
-    char           *receiving      = (char *)malloc(sizeof(ctx->network.current_move));
-    memcpy(receiving, &ctx->network.current_move, sizeof(ctx->network.current_move));
+    size_t          msg_size       = sizeof(ctx->input.direction);
+    char           *receiving      = (char *)malloc(msg_size);
+    if(receiving == NULL)
+    {
+        return ERROR;
+    }
+    receiving[0] = 0;
+    memcpy(receiving, &ctx->network.current_move, msg_size);
 
     while((size_t)total_received < ctx->network.msg_size)
     {
@@ -185,6 +199,10 @@ static p101_fsm_state_t handle_packet(const struct p101_env *env, struct p101_er
         }
         total_received += bytes_received;
     }
+    if(receiving == NULL)
+    {
+        return ERROR;
+    }
     memcpy(&ctx->network.current_move, receiving, ctx->network.msg_size);
     free(receiving);
     ctx->network.current_move = ntohs(ctx->network.current_move);
@@ -193,8 +211,6 @@ static p101_fsm_state_t handle_packet(const struct p101_env *env, struct p101_er
 }
 
 #pragma GCC diagnostic pop
-
-#pragma GCC diagnostic pop    // END OF DEPRECATED
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-parameter"
@@ -210,14 +226,11 @@ static p101_fsm_state_t read_input(const struct p101_env *env, struct p101_error
     {
         return READ_KEYBOARD;
     }
-    else if(ctx->input.type == CONTROLLER)
+    if(ctx->input.type == CONTROLLER)
     {
         return READ_CONTROLLER;
     }
-    else
-    {
-        return ERROR;
-    }
+    return ERROR;
 }
 
 #pragma GCC diagnostic pop
@@ -230,8 +243,13 @@ static p101_fsm_state_t read_network(const struct p101_env *env, struct p101_err
     ssize_t         total_received = 0;
     struct context *ctx            = (struct context *)arg;
     uint16_t        received       = 0;
-    char           *receiving      = (char *)malloc(sizeof(received));
-    memcpy(receiving, &received, sizeof(received));
+    size_t          msg_size       = sizeof(received);
+    char           *receiving      = (char *)malloc(msg_size);
+    if(receiving == NULL)
+    {
+        return ERROR;
+    }
+    memcpy(receiving, &received, msg_size);
 
     while((size_t)total_received < ctx->network.msg_size)
     {
@@ -245,7 +263,7 @@ static p101_fsm_state_t read_network(const struct p101_env *env, struct p101_err
         }
         total_received += bytes_received;
     }
-    memcpy(&received, receiving, sizeof(received));
+    memcpy(&received, receiving, msg_size);
     free(receiving);
 
     if(ntohs(received) == CLOSE_CONNECTION_MESSAGE)

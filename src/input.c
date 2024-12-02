@@ -3,8 +3,8 @@
 //
 
 #include "input.h"
-#include <SDL2/SDL.h>
 #include "app_types.h"
+#include <SDL2/SDL.h>
 #include <curses.h>
 #include <stdbool.h>
 #include <stdio.h>
@@ -54,13 +54,12 @@ enum move_direction getControllerInput(const SDL_Event *event)
     return NONE;
 }
 
-enum move_direction wait_for_controller_input(SDL_GameController *controller)
+enum move_direction wait_for_controller_input(void)
 {
     SDL_Event event;
-    enum move_direction direction;
     while(SDL_PollEvent(&event))
     {
-        if (event.type == SDL_CONTROLLERBUTTONDOWN)
+        if(event.type == SDL_CONTROLLERBUTTONDOWN)
         {
             return getControllerInput(&event);
         }

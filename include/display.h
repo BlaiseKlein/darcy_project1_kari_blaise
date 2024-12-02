@@ -3,17 +3,17 @@
 //
 
 #ifndef DISPLAY_H
-    #define DISPLAY_HP
+#define DISPLAY_H
 
-    #include "app_types.h"
-    #include <curses.h>
-    #include <stdbool.h>
+#include "app_types.h"
+#include <curses.h>
+#include <stdbool.h>
 
-    #define ROW_SCALE_A 2
-    #define ROW_SCALE_B 8
-    #define COL_SCALE_A 9
-    #define COL_SCALE_B 1
-    #define SCALE_DIVISOR 10
+#define ROW_SCALE_A 2
+#define ROW_SCALE_B 8
+#define COL_SCALE_A 9
+#define COL_SCALE_B 1
+#define SCALE_DIVISOR 10
 
 // void setupWindow(struct board_state *board);
 void shutdown_window(void);
@@ -24,17 +24,17 @@ static p101_fsm_state_t sync_nodes(const struct p101_env *env, struct p101_error
 static p101_fsm_state_t setup_window(const struct p101_env *env, struct p101_error *err, void *arg);
 static p101_fsm_state_t refresh_screen(const struct p101_env *env, struct p101_error *err, void *arg);
 
-    #pragma GCC diagnostic push
-    #pragma GCC diagnostic ignored "-Wunused-parameter"
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
 
 static p101_fsm_state_t sync_nodes(const struct p101_env *env, struct p101_error *err, void *arg)
 {
     struct context     *ctx   = (struct context *)arg;
     struct board_state *board = &(ctx->board);
 
-    if(ctx->input_rdy > 0 && (enum move_direction)ctx->input.direction != NONE)
+    if(ctx->input_rdy > 0 && ctx->input.direction != NONE)
     {
-        move_node(board, (enum move_direction)ctx->input.direction, TRUE);
+        move_node(board, ctx->input.direction, TRUE);
     }
     if(ctx->net_rdy > 0 && (enum move_direction)ctx->network.current_move != NONE)
     {
@@ -44,10 +44,10 @@ static p101_fsm_state_t sync_nodes(const struct p101_env *env, struct p101_error
     return REFRESH_SCREEN;
 }
 
-    #pragma GCC diagnostic pop
+#pragma GCC diagnostic pop
 
-    #pragma GCC diagnostic push
-    #pragma GCC diagnostic ignored "-Wunused-parameter"
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
 
 static p101_fsm_state_t setup_window(const struct p101_env *env, struct p101_error *err, void *arg)
 {
@@ -82,10 +82,10 @@ static p101_fsm_state_t setup_window(const struct p101_env *env, struct p101_err
     return READ_INPUT;
 }
 
-    #pragma GCC diagnostic pop
+#pragma GCC diagnostic pop
 
-    #pragma GCC diagnostic push
-    #pragma GCC diagnostic ignored "-Wunused-parameter"
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
 
 static p101_fsm_state_t refresh_screen(const struct p101_env *env, struct p101_error *err, void *arg)
 {
@@ -100,6 +100,6 @@ static p101_fsm_state_t refresh_screen(const struct p101_env *env, struct p101_e
     return READ_INPUT;
 }
 
-    #pragma GCC diagnostic pop
+#pragma GCC diagnostic pop
 
 #endif    // DISPLAY_H
