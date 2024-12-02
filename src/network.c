@@ -113,6 +113,8 @@ void socket_bind(int sockfd, struct sockaddr_storage *addr, in_port_t port, int 
 
     if(bind(sockfd, (struct sockaddr *)addr, addr_len) == -1)
     {
+        perror("Binding failed");
+        fprintf(stderr, "Error code: %d\n", errno);
         *err = -3;
         return;
     }

@@ -50,12 +50,12 @@ static p101_fsm_state_t create_sending_stream(const struct p101_env *env, struct
     struct context *ctx    = (struct context *)arg;
     ctx->network.send_addr = (struct sockaddr_storage *)malloc(sizeof(struct sockaddr_storage));
 
-    ctx->network.send_port = parse_in_port_t(ctx->arg.sys_port, &ctx->err);
+    ctx->network.send_port = parse_in_port_t(ctx->arg.target_port, &ctx->err);
     if(ctx->err < 0)
     {
         return ERROR;
     }
-    convert_address(ctx->arg.sys_addr, ctx->network.send_addr, &ctx->network.send_addr_len, &ctx->err);
+    convert_address(ctx->arg.target_addr, ctx->network.send_addr, &ctx->network.send_addr_len, &ctx->err);
     if(ctx->err < 0)
     {
         return ERROR;
@@ -85,12 +85,12 @@ static p101_fsm_state_t create_receiving_stream(const struct p101_env *env, stru
     struct context *ctx       = (struct context *)arg;
     ctx->network.receive_addr = (struct sockaddr_storage *)malloc(sizeof(struct sockaddr_storage));
 
-    ctx->network.receive_port = parse_in_port_t(ctx->arg.target_port, &ctx->err);
+    ctx->network.receive_port = parse_in_port_t(ctx->arg.sys_port, &ctx->err);
     if(ctx->err < 0)
     {
         return ERROR;
     }
-    convert_address(ctx->arg.target_addr, ctx->network.receive_addr, &ctx->network.receive_addr_len, &ctx->err);
+    convert_address(ctx->arg.sys_addr, ctx->network.receive_addr, &ctx->network.receive_addr_len, &ctx->err);
     if(ctx->err < 0)
     {
         return ERROR;
