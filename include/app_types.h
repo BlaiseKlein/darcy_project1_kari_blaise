@@ -7,8 +7,8 @@
 
 #include <p101_fsm/fsm.h>
 #include <p101_posix/p101_unistd.h>
-
-#define MSGSIZE sizeof(uint16_t);
+#include <stdint.h>
+#include <netinet/in.h>
 
 enum application_states
 {
@@ -48,10 +48,10 @@ enum move_direction
 struct arguments
 {
     char *sys_addr;
-    // ssize_t sys_addr_len;
+    ssize_t sys_addr_len;
     char *sys_port;
     char *target_addr;
-    // ssize_t target_addr_len;
+    ssize_t target_addr_len;
     char *target_port;
     // char    controller_type;
     // Controller type, joystick, keyboard, etc...
@@ -61,12 +61,12 @@ struct input_state
 {
     //    enum controller_type controller;
     enum controller_type type;
-    int direction;
+    uint16_t direction;
 };
 
 struct network_state
 {
-    const size_t             msg_size = MSGSIZE;
+    const size_t             msg_size;
     int                      send_fd;
     struct sockaddr_storage *send_addr;
     socklen_t                send_addr_len;
@@ -75,7 +75,7 @@ struct network_state
     struct sockaddr_storage *receive_addr;
     socklen_t                receive_addr_len;
     in_port_t                receive_port;
-    int                      current_move;
+    uint16_t                      current_move;
 };
 
 struct board_state

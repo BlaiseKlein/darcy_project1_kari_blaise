@@ -59,6 +59,8 @@ void move_node(struct board_state *board, enum move_direction move, bool is_host
         case RIGHT:
             *y += 2;
             break;
+        case NONE:
+            break;
         default:
             break;
     }
@@ -68,7 +70,6 @@ void move_node(struct board_state *board, enum move_direction move, bool is_host
         mvprintw(0, 0, "Collision detected! Player reset.");
         *x = board->length / 2;
         *y = board->width / 2;
-        ;
     }
     refresh_screen(board);
 }
