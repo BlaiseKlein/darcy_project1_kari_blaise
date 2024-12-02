@@ -48,7 +48,7 @@ static p101_fsm_state_t read_input(const struct p101_env *env, struct p101_error
 static p101_fsm_state_t create_sending_stream(const struct p101_env *env, struct p101_error *err, void *arg)
 {
     struct context *ctx    = (struct context *)arg;
-    ctx->network.send_addr = malloc(sizeof(struct sockaddr_storage));
+    ctx->network.send_addr = (struct sockaddr_storage *)malloc(sizeof(struct sockaddr_storage));
 
     ctx->network.send_port = parse_in_port_t(ctx->arg.sys_port, &ctx->err);
     if(ctx->err < 0)
@@ -83,7 +83,7 @@ static p101_fsm_state_t create_sending_stream(const struct p101_env *env, struct
 static p101_fsm_state_t create_receiving_stream(const struct p101_env *env, struct p101_error *err, void *arg)
 {
     struct context *ctx       = (struct context *)arg;
-    ctx->network.receive_addr = malloc(sizeof(struct sockaddr_storage));
+    ctx->network.receive_addr = (struct sockaddr_storage *)malloc(sizeof(struct sockaddr_storage));
 
     ctx->network.receive_port = parse_in_port_t(ctx->arg.target_port, &ctx->err);
     if(ctx->err < 0)
