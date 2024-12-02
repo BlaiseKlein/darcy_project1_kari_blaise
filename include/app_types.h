@@ -13,9 +13,7 @@
 enum application_states
 {
     INIT = P101_FSM_USER_START,    // 2
-    INPUT_SETUP,
     SETUP_CONTROLLER,
-    SETUP_KEYBOARD,
     CREATE_SENDING_STREAM,
     CREATE_RECEIVING_STREAM,
     SETUP_WINDOW,
@@ -25,7 +23,7 @@ enum application_states
     READ_NETWORK,
     SEND_PACKET,
     HANDLE_PACKET,
-    MOVE_NODE,
+    SYNC_NODES,
     REFRESH_SCREEN,
     SAFE_CLOSE,
     ERROR,
