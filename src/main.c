@@ -98,7 +98,10 @@ int main(int argc, char *argv[])
         p101_fsm_info_destroy(env, &fsm);
     }
 
-    free(ctx);
+    if (ctx != NULL)
+    {
+        free(ctx);
+    }
     free(fsm_env);
     free(env);
     p101_error_reset(error);
@@ -246,6 +249,8 @@ static p101_fsm_state_t safe_close(const struct p101_env *env, struct p101_error
             free(ctx->network.receive_addr);
         }
         free(ctx);
+
+        ctx = NULL;
     }
 
     return P101_FSM_EXIT;
@@ -271,6 +276,7 @@ static p101_fsm_state_t error_state(const struct p101_env *env, struct p101_erro
             free(ctx->network.receive_addr);
         }
         free(ctx);
+        ctx = NULL;
     }
     return P101_FSM_EXIT;
 }
