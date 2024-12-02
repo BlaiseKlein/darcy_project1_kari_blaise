@@ -216,6 +216,9 @@ static p101_fsm_state_t init(const struct p101_env *env, struct p101_error *err,
 {
     const struct context *ctx = (struct context *)arg;
 
+    printf("Press any button to start, Ctrl+C to exit\n");
+    getchar();
+
     if(ctx->input.type == KEYBOARD)
     {
         return CREATE_SENDING_STREAM;
