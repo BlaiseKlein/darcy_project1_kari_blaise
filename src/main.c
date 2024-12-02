@@ -59,6 +59,8 @@ int main(int argc, char *argv[])
     if(p101_error_has_error(error))
     {
         fprintf(stderr, "Error creating FSM: %s\n", p101_error_get_message(error));
+        free(ctx);
+        ctx = NULL;
     }
     else
     {
@@ -98,9 +100,20 @@ int main(int argc, char *argv[])
         p101_fsm_info_destroy(env, &fsm);
     }
 
-    if (ctx != NULL)
+    if(ctx != NULL)
     {
+        if(ctx->network.send_addr != NULL)
+        {
+            free(ctx->network.send_addr);
+            ctx->network.send_addr = NULL;
+        }
+        if(ctx->network.receive_addr != NULL)
+        {
+            free(ctx->network.receive_addr);
+            ctx->network.receive_addr = NULL;
+        }
         free(ctx);
+        ctx = NULL;
     }
     free(fsm_env);
     free(env);
@@ -243,13 +256,14 @@ static p101_fsm_state_t safe_close(const struct p101_env *env, struct p101_error
         if(ctx->network.send_addr != NULL)
         {
             free(ctx->network.send_addr);
+            ctx->network.send_addr = NULL;
         }
         if(ctx->network.receive_addr != NULL)
         {
             free(ctx->network.receive_addr);
+            ctx->network.receive_addr = NULL;
         }
         free(ctx);
-
         ctx = NULL;
     }
 
@@ -270,10 +284,12 @@ static p101_fsm_state_t error_state(const struct p101_env *env, struct p101_erro
         if(ctx->network.send_addr != NULL)
         {
             free(ctx->network.send_addr);
+            ctx->network.send_addr = NULL;
         }
         if(ctx->network.receive_addr != NULL)
         {
             free(ctx->network.receive_addr);
+            ctx->network.receive_addr = NULL;
         }
         free(ctx);
         ctx = NULL;
