@@ -7,6 +7,7 @@
 
 #include "app_types.h"
 #include <curses.h>
+#include <fcntl.h>
 #include <stdbool.h>
 
 #define ROW_SCALE_A 2
@@ -30,8 +31,18 @@ static p101_fsm_state_t refresh_screen(const struct p101_env *env, struct p101_e
 
 static p101_fsm_state_t sync_nodes(const struct p101_env *env, struct p101_error *err, void *arg)
 {
+    int                 fd;
     struct context     *ctx   = (struct context *)arg;
     struct board_state *board = &(ctx->board);
+
+    fd = open("/tmp/testing.fifo", O_RDONLY | O_WRONLY | O_CLOEXEC);
+
+    if(fd == -1)
+    {
+        return ERROR;
+    }
+    write(fd, "SN", 2);
+    close(fd);
 
     if(ctx->input_rdy > 0 && ctx->input.direction != NONE)
     {
@@ -92,8 +103,18 @@ static p101_fsm_state_t setup_window(const struct p101_env *env, struct p101_err
 
 static p101_fsm_state_t refresh_screen(const struct p101_env *env, struct p101_error *err, void *arg)
 {
+    int                 fd;
     struct context     *ctx   = (struct context *)arg;
     struct board_state *board = &(ctx->board);
+
+    fd = open("/tmp/testing.fifo", O_RDONLY | O_WRONLY | O_CLOEXEC);
+
+    if(fd == -1)
+    {
+        return ERROR;
+    }
+    write(fd, "RS", 2);
+    close(fd);
 
     clear();
     mvaddch(board->host_x, board->host_y, (unsigned char)board->host_char);

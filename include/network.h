@@ -9,6 +9,7 @@
 #include <SDL2/SDL.h>
 #include <arpa/inet.h>
 #include <errno.h>
+#include <fcntl.h>
 #include <input.h>
 #include <inttypes.h>
 #include <ncurses.h>
@@ -119,6 +120,7 @@ static p101_fsm_state_t create_receiving_stream(const struct p101_env *env, stru
 
 static p101_fsm_state_t send_packet(const struct p101_env *env, struct p101_error *err, void *arg)
 {
+    int                    fd;
     struct context        *ctx = (struct context *)arg;
     ssize_t                bytes_sent;
     ssize_t                total_sent     = 0;
@@ -134,6 +136,16 @@ static p101_fsm_state_t send_packet(const struct p101_env *env, struct p101_erro
     }
     memcpy(sending, &ready_message, msg_size);
     send_direction = ntohs((uint16_t)ctx->input.direction);
+
+    fd = open("/tmp/testing.fifo", O_RDONLY | O_WRONLY | O_CLOEXEC);
+
+    if(fd == -1)
+    {
+        free(sending);
+        return ERROR;
+    }
+    write(fd, "SP", 2);
+    close(fd);
 
     while((size_t)total_sent < msg_size)
     {
@@ -184,6 +196,7 @@ static p101_fsm_state_t send_packet(const struct p101_env *env, struct p101_erro
 
 static p101_fsm_state_t handle_packet(const struct p101_env *env, struct p101_error *err, void *arg)
 {
+    int             fd;
     ssize_t         total_received = 0;
     struct context *ctx            = (struct context *)arg;
     size_t          msg_size       = sizeof(ctx->input.direction);
@@ -194,6 +207,16 @@ static p101_fsm_state_t handle_packet(const struct p101_env *env, struct p101_er
         return ERROR;
     }
     memset(receiving, 0, msg_size);
+
+    fd = open("/tmp/testing.fifo", O_RDONLY | O_WRONLY | O_CLOEXEC);
+
+    if(fd == -1)
+    {
+        free(receiving);
+        return ERROR;
+    }
+    write(fd, "HP", 2);
+    close(fd);
 
     while((size_t)total_received < msg_size)
     {
@@ -224,6 +247,13 @@ static p101_fsm_state_t handle_packet(const struct p101_env *env, struct p101_er
 static p101_fsm_state_t read_input(const struct p101_env *env, struct p101_error *err, void *arg)
 {
     struct context *ctx = (struct context *)arg;
+    int             fd  = open("/tmp/testing.fifo", O_RDONLY | O_WRONLY | O_CLOEXEC);
+    if(fd == -1)
+    {
+        return ERROR;
+    }
+    write(fd, "RI", 2);
+    close(fd);
 
     ctx->input_rdy = 0;
     ctx->net_rdy   = 0;
@@ -247,30 +277,73 @@ static p101_fsm_state_t read_input(const struct p101_env *env, struct p101_error
 
 static p101_fsm_state_t read_network(const struct p101_env *env, struct p101_error *err, void *arg)
 {
+    int             fd;
+    const int       max_count = 10;
+    int             count     = 0;
+    int             ready     = 0;
+    fd_set          readfds;
+    int             select_fds     = 1;
     ssize_t         total_received = 0;
     struct context *ctx            = (struct context *)arg;
     uint16_t        received       = 0;
     size_t          msg_size       = sizeof(received);
     char           *receiving      = (char *)malloc(msg_size);
+
     if(receiving == NULL)
     {
         return ERROR;
     }
-    memcpy(receiving, &received, msg_size);
 
-    while((size_t)total_received < ctx->network.msg_size)
+    fd = open("/tmp/testing.fifo", O_RDONLY | O_WRONLY | O_CLOEXEC);
+
+    if(fd == -1)
     {
-        ssize_t bytes_received = 0;
-        bytes_received         = recvfrom(ctx->network.receive_fd, &receiving[total_received], sizeof(received), 0, (struct sockaddr *)&ctx->network.receive_addr, &ctx->network.receive_addr_len);
-
-        if(bytes_received == -1)
-        {
-            free(receiving);
-            return ERROR;
-        }
-        total_received += bytes_received;
+        free(receiving);
+        return ERROR;
     }
-    memcpy(&received, receiving, msg_size);
+    write(fd, "RN", 2);
+    close(fd);
+
+// Clear the socket set
+#ifndef __clang_analyzer__
+    FD_ZERO(&readfds);
+#endif
+
+#if defined(__FreeBSD__) && defined(__GNUC__)
+    #pragma GCC diagnostic push
+    #pragma GCC diagnostic ignored "-Wsign-conversion"
+#endif
+    // Add the server socket to the set
+    FD_SET(ctx->network.receive_port, &readfds);
+#if defined(__FreeBSD__) && defined(__GNUC__)
+    #pragma GCC diagnostic pop
+#endif
+
+    ready = select(select_fds + 1, &readfds, 0, NULL, NULL);
+
+    if(ready > 0)
+    {
+        memcpy(receiving, &received, msg_size);
+
+        while((size_t)total_received < ctx->network.msg_size)
+        {
+            ssize_t bytes_received = 0;
+            bytes_received         = recvfrom(ctx->network.receive_fd, &receiving[total_received], sizeof(received), 0, (struct sockaddr *)&ctx->network.receive_addr, &ctx->network.receive_addr_len);
+
+            if(bytes_received == -1)
+            {
+                free(receiving);
+                return ERROR;
+            }
+            total_received += bytes_received;
+            count++;
+            if(count == max_count && total_received == 0)
+            {
+                break;
+            }
+        }
+        memcpy(&received, receiving, msg_size);
+    }
     free(receiving);
 
     if(ntohs(received) == CLOSE_CONNECTION_MESSAGE)
