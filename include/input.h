@@ -16,6 +16,7 @@ enum move_direction wait_for_controller_input(void);
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-parameter"
+#pragma GCC diagnostic ignored "-Wunused-function"
 
 static p101_fsm_state_t setup_controller(const struct p101_env *env, struct p101_error *err, void *arg)
 {
@@ -28,6 +29,7 @@ static p101_fsm_state_t setup_controller(const struct p101_env *env, struct p101
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-parameter"
+#pragma GCC diagnostic ignored "-Wunused-function"
 
 static p101_fsm_state_t read_controller(const struct p101_env *env, struct p101_error *err, void *arg)
 {
@@ -46,6 +48,7 @@ static p101_fsm_state_t read_controller(const struct p101_env *env, struct p101_
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-parameter"
+#pragma GCC diagnostic ignored "-Wunused-function"
 
 static p101_fsm_state_t read_keyboard(const struct p101_env *env, struct p101_error *err, void *arg)
 {

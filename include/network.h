@@ -43,6 +43,7 @@ static p101_fsm_state_t read_input(const struct p101_env *env, struct p101_error
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-parameter"
+#pragma GCC diagnostic ignored "-Wunused-function"
 
 static p101_fsm_state_t create_sending_stream(const struct p101_env *env, struct p101_error *err, void *arg)
 {
@@ -76,6 +77,7 @@ static p101_fsm_state_t create_sending_stream(const struct p101_env *env, struct
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-parameter"
+#pragma GCC diagnostic ignored "-Wunused-function"
 
 static p101_fsm_state_t create_receiving_stream(const struct p101_env *env, struct p101_error *err, void *arg)
 {
@@ -102,6 +104,8 @@ static p101_fsm_state_t create_receiving_stream(const struct p101_env *env, stru
         return ERROR;
     }
 
+    ctx->network.msg_size = sizeof(uint16_t);
+
     return SETUP_WINDOW;
 }
 
@@ -109,6 +113,7 @@ static p101_fsm_state_t create_receiving_stream(const struct p101_env *env, stru
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-parameter"
+#pragma GCC diagnostic ignored "-Wunused-function"
 
 static p101_fsm_state_t send_packet(const struct p101_env *env, struct p101_error *err, void *arg)
 {
@@ -126,7 +131,7 @@ static p101_fsm_state_t send_packet(const struct p101_env *env, struct p101_erro
         return ERROR;
     }
     memcpy(sending, &ready_message, msg_size);
-    send_direction = ntohs(ctx->input.direction);
+    send_direction = ntohs((uint16_t)ctx->input.direction);
 
     while((size_t)total_sent < msg_size)
     {
@@ -173,21 +178,22 @@ static p101_fsm_state_t send_packet(const struct p101_env *env, struct p101_erro
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-parameter"
+#pragma GCC diagnostic ignored "-Wunused-function"
 
 static p101_fsm_state_t handle_packet(const struct p101_env *env, struct p101_error *err, void *arg)
 {
     ssize_t         total_received = 0;
     struct context *ctx            = (struct context *)arg;
     size_t          msg_size       = sizeof(ctx->input.direction);
-    char           *receiving      = (char *)malloc(msg_size);
+    char           *receiving      = NULL;
+    receiving                      = (char *)malloc(msg_size);
     if(receiving == NULL)
     {
         return ERROR;
     }
-    receiving[0] = 0;
-    memcpy(receiving, &ctx->network.current_move, msg_size);
+    memset(receiving, 0, msg_size);
 
-    while((size_t)total_received < ctx->network.msg_size)
+    while((size_t)total_received < msg_size)
     {
         ssize_t bytes_received = 0;
         bytes_received         = recvfrom(ctx->network.receive_fd, &receiving[total_received], ctx->network.msg_size, 0, (struct sockaddr *)&ctx->network.receive_addr, &ctx->network.receive_addr_len);
@@ -199,10 +205,7 @@ static p101_fsm_state_t handle_packet(const struct p101_env *env, struct p101_er
         }
         total_received += bytes_received;
     }
-    if(receiving == NULL)
-    {
-        return ERROR;
-    }
+
     memcpy(&ctx->network.current_move, receiving, ctx->network.msg_size);
     free(receiving);
     ctx->network.current_move = ntohs(ctx->network.current_move);
@@ -214,6 +217,7 @@ static p101_fsm_state_t handle_packet(const struct p101_env *env, struct p101_er
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-parameter"
+#pragma GCC diagnostic ignored "-Wunused-function"
 
 static p101_fsm_state_t read_input(const struct p101_env *env, struct p101_error *err, void *arg)
 {
@@ -237,6 +241,7 @@ static p101_fsm_state_t read_input(const struct p101_env *env, struct p101_error
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-parameter"
+#pragma GCC diagnostic ignored "-Wunused-function"
 
 static p101_fsm_state_t read_network(const struct p101_env *env, struct p101_error *err, void *arg)
 {

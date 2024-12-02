@@ -254,18 +254,6 @@ static p101_fsm_state_t error_state(const struct p101_env *env, struct p101_erro
 
 #pragma GCC diagnostic pop
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wunused-parameter"
-
-static p101_fsm_state_t state_error(const struct p101_env *env, struct p101_error *err, void *arg)
-{
-    P101_TRACE(env);
-
-    return P101_FSM_EXIT;
-}
-
-#pragma GCC diagnostic pop
-
 void handle_signal(int signal)
 {
     if(signal == SIGINT)

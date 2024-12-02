@@ -68,7 +68,7 @@ struct input_state
 
 struct network_state
 {
-    const size_t             msg_size;
+    size_t                   msg_size;
     int                      send_fd;
     struct sockaddr_storage *send_addr;
     socklen_t                send_addr_len;

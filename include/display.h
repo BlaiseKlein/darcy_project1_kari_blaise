@@ -26,6 +26,7 @@ static p101_fsm_state_t refresh_screen(const struct p101_env *env, struct p101_e
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-parameter"
+#pragma GCC diagnostic ignored "-Wunused-function"
 
 static p101_fsm_state_t sync_nodes(const struct p101_env *env, struct p101_error *err, void *arg)
 {
@@ -48,6 +49,7 @@ static p101_fsm_state_t sync_nodes(const struct p101_env *env, struct p101_error
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-parameter"
+#pragma GCC diagnostic ignored "-Wunused-function"
 
 static p101_fsm_state_t setup_window(const struct p101_env *env, struct p101_error *err, void *arg)
 {
@@ -86,6 +88,7 @@ static p101_fsm_state_t setup_window(const struct p101_env *env, struct p101_err
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-parameter"
+#pragma GCC diagnostic ignored "-Wunused-function"
 
 static p101_fsm_state_t refresh_screen(const struct p101_env *env, struct p101_error *err, void *arg)
 {
