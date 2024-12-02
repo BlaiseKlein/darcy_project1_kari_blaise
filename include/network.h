@@ -116,7 +116,7 @@ static p101_fsm_state_t send_packet(const struct p101_env *env, struct p101_erro
     ssize_t                bytes_sent    = 0;
     ssize_t                total_sent    = 0;
     const struct sockaddr *send_addr     = (struct sockaddr *)ctx->network.send_addr;
-    const uint16_t              ready_message = htons(READYTOSENDMSG);
+    const uint16_t         ready_message = htons(READYTOSENDMSG);
     char                  *sending       = (char *)malloc(sizeof(ready_message));
     memcpy(sending, &ready_message, sizeof(ready_message));
     ctx->input.direction = ntohs(ctx->input.direction);
@@ -182,7 +182,7 @@ static p101_fsm_state_t handle_packet(const struct p101_env *env, struct p101_er
     free(receiving);
     ctx->network.current_move = ntohs(ctx->network.current_move);
 
-    return MOVE_NODE;
+    return SYNC_NODES;
 }
 
 #pragma GCC diagnostic pop
@@ -241,7 +241,7 @@ static p101_fsm_state_t read_network(const struct p101_env *env, struct p101_err
     memcpy(&received, receiving, sizeof(received));
     free(receiving);
 
-    if (ntohs(received) == CLOSE_CONNECTION_MESSAGE)
+    if(ntohs(received) == CLOSE_CONNECTION_MESSAGE)
     {
         return SAFE_CLOSE;
     }
