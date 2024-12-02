@@ -1,39 +1,32 @@
+#include "app_types.h"
+#include <SDL2/SDL.h>
 #include <arpa/inet.h>
 #include <errno.h>
 #include <inttypes.h>
 #include <netinet/in.h>
 #include <p101_fsm/fsm.h>
 #include <p101_posix/p101_unistd.h>
+#include <signal.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/socket.h>
 #include <unistd.h>
-#include "app_types.h"
-#include <SDL2/SDL.h>
-
-
 // #include "input.h"
-// #include "network.h"
+#include "network.h"
 
 #define UNKNOWN_OPTION_MESSAGE_LEN 24
-
+void                    handle_signal(int signal);
 static void             parse_arguments(const struct p101_env *env, int argc, char *argv[], struct context *ctx);
 _Noreturn static void   usage(const char *program_name, int exit_code, const char *message);
 static p101_fsm_state_t init(const struct p101_env *env, struct p101_error *err, void *arg);
 static p101_fsm_state_t setup_input_source(const struct p101_env *env, struct p101_error *err, void *arg);
 static p101_fsm_state_t setup_controller(const struct p101_env *env, struct p101_error *err, void *arg);
 static p101_fsm_state_t setup_keyboard(const struct p101_env *env, struct p101_error *err, void *arg);
-static p101_fsm_state_t create_sending_stream(const struct p101_env *env, struct p101_error *err, void *arg);
-static p101_fsm_state_t create_receiving_stream(const struct p101_env *env, struct p101_error *err, void *arg);
 static p101_fsm_state_t setup_window(const struct p101_env *env, struct p101_error *err, void *arg);
-static p101_fsm_state_t read_input(const struct p101_env *env, struct p101_error *err, void *arg);
 static p101_fsm_state_t read_controller(const struct p101_env *env, struct p101_error *err, void *arg);
 static p101_fsm_state_t read_keyboard(const struct p101_env *env, struct p101_error *err, void *arg);
-static p101_fsm_state_t read_network(const struct p101_env *env, struct p101_error *err, void *arg);
-static p101_fsm_state_t send_packet(const struct p101_env *env, struct p101_error *err, void *arg);
-static p101_fsm_state_t handle_packet(const struct p101_env *env, struct p101_error *err, void *arg);
 static p101_fsm_state_t move_node(const struct p101_env *env, struct p101_error *err, void *arg);
 static p101_fsm_state_t refresh_screen(const struct p101_env *env, struct p101_error *err, void *arg);
 static p101_fsm_state_t safe_close(const struct p101_env *env, struct p101_error *err, void *arg);
@@ -48,13 +41,26 @@ int main(int argc, char *argv[])
     struct p101_fsm_info *fsm;
     struct context       *ctx;
 
-    error = p101_error_create(false);
-    env   = p101_env_create(error, true, NULL);
-    ctx   = (struct context *)malloc(sizeof(struct context));
+    error                     = p101_error_create(false);
+    env                       = p101_env_create(error, true, NULL);
+    ctx                       = (struct context *)malloc(sizeof(struct context));
+
+    if (ctx == NULL)
+    {
+        usage(argv[0], EXIT_FAILURE, "Context malloc failed");
+    }
+
+    ctx->network.receive_addr = NULL;
+    ctx->network.send_addr    = NULL;
     parse_arguments(env, argc, argv, ctx);
     fsm_error = p101_error_create(false);
     fsm_env   = p101_env_create(error, true, NULL);
-    fsm       = p101_fsm_info_create(env, error, "test-fsm", fsm_env, fsm_error, NULL);
+    fsm       = p101_fsm_info_create(env, error, "game", fsm_env, fsm_error, NULL);
+
+    if(signal(SIGINT, handle_signal) == SIG_ERR)
+    {
+        usage(argv[0], EXIT_FAILURE, "signal handler could not be setup");
+    }
 
     if(p101_error_has_error(error))
     {
@@ -71,7 +77,7 @@ int main(int argc, char *argv[])
             {SETUP_KEYBOARD,          CREATE_SENDING_STREAM,   create_sending_stream  },
             {CREATE_SENDING_STREAM,   CREATE_RECEIVING_STREAM, create_receiving_stream},
             {CREATE_RECEIVING_STREAM, SETUP_WINDOW,            setup_window           },
-            {SETUP_WINDOW,            READ_INPUT,             read_input            },
+            {SETUP_WINDOW,            READ_INPUT,              read_input             },
             {INIT,                    ERROR,                   error_state            },
             {INPUT_SETUP,             ERROR,                   error_state            },
             {INPUT_SETUP,             ERROR,                   error_state            },
@@ -80,18 +86,18 @@ int main(int argc, char *argv[])
             {CREATE_SENDING_STREAM,   ERROR,                   error_state            },
             {CREATE_RECEIVING_STREAM, ERROR,                   error_state            },
             {SETUP_WINDOW,            ERROR,                   error_state            },
-            {READ_INPUT,             READ_CONTROLLER,         read_controller        },
-            {READ_INPUT,             READ_KEYBOARD,            read_keyboard           },
-            {READ_KEYBOARD,            READ_NETWORK,             read_network            },
-            {READ_CONTROLLER,         READ_NETWORK,             read_network            },
+            {READ_INPUT,              READ_CONTROLLER,         read_controller        },
+            {READ_INPUT,              READ_KEYBOARD,           read_keyboard          },
+            {READ_KEYBOARD,           READ_NETWORK,            read_network           },
+            {READ_CONTROLLER,         READ_NETWORK,            read_network           },
             {READ_NETWORK,            HANDLE_PACKET,           handle_packet          },
-            {READ_NETWORK,            SEND_PACKET,           send_packet          },
-            {READ_NETWORK,            READ_INPUT,           read_input          },
-            {SEND_PACKET,             HANDLE_PACKET,               handle_packet              },
+            {READ_NETWORK,            SEND_PACKET,             send_packet            },
+            {READ_NETWORK,            READ_INPUT,              read_input             },
+            {SEND_PACKET,             HANDLE_PACKET,           handle_packet          },
             {HANDLE_PACKET,           MOVE_NODE,               move_node              },
             {MOVE_NODE,               REFRESH_SCREEN,          refresh_screen         },
-            {REFRESH_SCREEN,          READ_INPUT,             read_input            },
-            {READ_INPUT,             SAFE_CLOSE,              safe_close             },
+            {REFRESH_SCREEN,          READ_INPUT,              read_input             },
+            {READ_INPUT,              SAFE_CLOSE,              safe_close             },
             {ERROR,                   P101_FSM_EXIT,           NULL                   },
             {SAFE_CLOSE,              P101_FSM_EXIT,           NULL                   }
         };
@@ -128,13 +134,15 @@ static void parse_arguments(const struct p101_env *env, int argc, char *argv[], 
             case 'i':
             {
                 // save own ip address
-                ctx->arg.sys_addr = optarg;
+                ctx->arg.sys_addr     = optarg;
+                ctx->arg.sys_addr_len = (ssize_t)strlen(optarg);
                 break;
             }
             case 'I':
             {
                 // save target ip address
-                ctx->arg.target_addr = optarg;
+                ctx->arg.target_addr     = optarg;
+                ctx->arg.target_addr_len = (ssize_t)strlen(optarg);
                 break;
             }
             case 'p':
@@ -152,7 +160,19 @@ static void parse_arguments(const struct p101_env *env, int argc, char *argv[], 
             case 'c':
             {
                 // save controller type
-                ctx->input.type = optarg;
+                char *input_type = optarg;
+                if(input_type == NULL)
+                {
+                    usage(argv[0], EXIT_SUCCESS, "-c requires either \"keyboard\" or \"controller\" as an input");
+                }
+                if(strcmp(input_type, "keyboard") == 0)
+                {
+                    ctx->input.type = KEYBOARD;
+                }
+                if(strcmp(input_type, "controller") == 0)
+                {
+                    ctx->input.type = CONTROLLER;
+                }
                 break;
             }
             case '?':
@@ -250,56 +270,13 @@ static p101_fsm_state_t setup_keyboard(const struct p101_env *env, struct p101_e
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-parameter"
 
-static p101_fsm_state_t create_sending_stream(const struct p101_env *env, struct p101_error *err, void *arg)
-{
-    printf("create_sending_stream\n");
-
-    ((struct context *)arg)->network.send_fd = 1;
-
-    return CREATE_RECEIVING_STREAM;
-}
-
-#pragma GCC diagnostic pop
-
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wunused-parameter"
-
-static p101_fsm_state_t create_receiving_stream(const struct p101_env *env, struct p101_error *err, void *arg)
-{
-    printf("create_receiving_stream\n");
-
-    return SETUP_WINDOW;
-}
-
-#pragma GCC diagnostic pop
-
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wunused-parameter"
-
 static p101_fsm_state_t setup_window(const struct p101_env *env, struct p101_error *err, void *arg)
 {
     printf("setup_window\n");
 
     ((struct context *)arg)->board.length = 1;
 
-    return AWAIT_INPUT;
-}
-
-#pragma GCC diagnostic pop
-
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wunused-parameter"
-
-static p101_fsm_state_t await_input(const struct p101_env *env, struct p101_error *err, void *arg)
-{
-    printf("await_input\n");
-
-    if(((struct context *)arg)->board.length == 2)
-    {
-        return SAFE_CLOSE;
-    }
-
-    return READ_CONTROLLER;
+    return READ_INPUT;
 }
 
 #pragma GCC diagnostic pop
@@ -312,42 +289,6 @@ static p101_fsm_state_t read_controller(const struct p101_env *env, struct p101_
     printf("read_controller\n");
 
     return SEND_PACKET;
-}
-
-#pragma GCC diagnostic pop
-
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wunused-parameter"
-
-static p101_fsm_state_t read_network(const struct p101_env *env, struct p101_error *err, void *arg)
-{
-    printf("read_network\n");
-
-    return HANDLE_PACKET;
-}
-
-#pragma GCC diagnostic pop
-
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wunused-parameter"
-
-static p101_fsm_state_t send_packet(const struct p101_env *env, struct p101_error *err, void *arg)
-{
-    printf("send_packet\n");
-
-    return MOVE_NODE;
-}
-
-#pragma GCC diagnostic pop
-
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wunused-parameter"
-
-static p101_fsm_state_t handle_packet(const struct p101_env *env, struct p101_error *err, void *arg)
-{
-    printf("handle_packet\n");
-
-    return MOVE_NODE;
 }
 
 #pragma GCC diagnostic pop
@@ -373,7 +314,7 @@ static p101_fsm_state_t refresh_screen(const struct p101_env *env, struct p101_e
 {
     printf("refresh_screen\n");
 
-    return AWAIT_INPUT;
+    return READ_INPUT;
 }
 
 #pragma GCC diagnostic pop
@@ -383,7 +324,35 @@ static p101_fsm_state_t refresh_screen(const struct p101_env *env, struct p101_e
 
 static p101_fsm_state_t safe_close(const struct p101_env *env, struct p101_error *err, void *arg)
 {
-    printf("safe_close\n");
+    struct context        *ctx           = (struct context *)arg;
+    ssize_t                bytes_sent    = 0;
+    ssize_t                total_sent    = 0;
+    const struct sockaddr *send_addr     = (struct sockaddr *)ctx->network.send_addr;
+    const uint16_t              ready_message = htons(CLOSE_CONNECTION_MESSAGE);
+    char                  *sending       = (char *)malloc(sizeof(ready_message));
+    memcpy(sending, &ready_message, sizeof(ready_message));
+
+    while((size_t)total_sent < sizeof(ready_message))
+    {
+        bytes_sent = sendto(ctx->network.send_fd, &sending[total_sent], sizeof(ready_message) - (size_t)total_sent, 0, send_addr, ctx->network.send_addr_len);
+
+        if(bytes_sent == -1)
+        {
+            free(sending);
+            sending = NULL;
+            break;
+        }
+        total_sent += bytes_sent;
+    }
+    if (sending != NULL)
+    {
+        free(sending);
+    }
+
+    if (ctx != NULL)
+    {
+        free(ctx);
+    }
 
     return P101_FSM_EXIT;
 }
@@ -413,3 +382,21 @@ static p101_fsm_state_t state_error(const struct p101_env *env, struct p101_erro
 }
 
 #pragma GCC diagnostic pop
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
+
+static p101_fsm_state_t read_keyboard(const struct p101_env *env, struct p101_error *err, void *arg)
+{
+    return READ_NETWORK;
+}
+
+#pragma GCC diagnostic pop
+
+void handle_signal(int signal)
+{
+    if(signal == SIGINT)
+    {
+        abort();
+    }
+}
