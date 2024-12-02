@@ -151,7 +151,14 @@ static p101_fsm_state_t send_packet(const struct p101_env *env, struct p101_erro
     }
     free(sending);
 
-    return HANDLE_PACKET;
+    if(ctx->net_rdy > 0)
+    {
+        return HANDLE_PACKET;
+    }
+    else
+    {
+        return SYNC_NODES;
+    }
 }
 
 #pragma GCC diagnostic pop

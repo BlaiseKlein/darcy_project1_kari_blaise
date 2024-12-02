@@ -18,6 +18,7 @@
 #include <unistd.h>
 
 #define UNKNOWN_OPTION_MESSAGE_LEN 24
+
 void                    handle_signal(int signal);
 static void             parse_arguments(const struct p101_env *env, int argc, char *argv[], struct context *ctx);
 _Noreturn static void   usage(const char *program_name, int exit_code, const char *message);
@@ -84,8 +85,9 @@ int main(int argc, char *argv[])
             {READ_NETWORK,            SEND_PACKET,             send_packet            },
             {READ_NETWORK,            READ_INPUT,              read_input             },
             {SEND_PACKET,             HANDLE_PACKET,           handle_packet          },
-            {HANDLE_PACKET,           SYNC_NODES,               sync_nodes              },
-            {SYNC_NODES,               REFRESH_SCREEN,          refresh_screen         },
+            {SEND_PACKET,             SYNC_NODES,              sync_nodes             },
+            {HANDLE_PACKET,           SYNC_NODES,              sync_nodes             },
+            {SYNC_NODES,              REFRESH_SCREEN,          refresh_screen         },
             {REFRESH_SCREEN,          READ_INPUT,              read_input             },
             {READ_INPUT,              SAFE_CLOSE,              safe_close             },
             {ERROR,                   P101_FSM_EXIT,           NULL                   },

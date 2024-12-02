@@ -32,11 +32,11 @@ static p101_fsm_state_t sync_nodes(const struct p101_env *env, struct p101_error
     struct context     *ctx   = (struct context *)arg;
     struct board_state *board = &(ctx->board);
 
-    if((enum move_direction)ctx->input.direction != NONE)
+    if(ctx->input_rdy > 0 && (enum move_direction)ctx->input.direction != NONE)
     {
         move_node(board, (enum move_direction)ctx->input.direction, TRUE);
     }
-    if((enum move_direction)ctx->network.current_move != NONE)
+    if(ctx->net_rdy > 0 && (enum move_direction)ctx->network.current_move != NONE)
     {
         move_node(board, (enum move_direction)ctx->network.current_move, FALSE);
     }
