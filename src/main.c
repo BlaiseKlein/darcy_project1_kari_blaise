@@ -255,19 +255,7 @@ static p101_fsm_state_t safe_close(const struct p101_env *env, struct p101_error
 {
     struct context *ctx = (struct context *)arg;
     endwin();
-    if(ctx != NULL)
-    {
-        if(ctx->network.send_addr != NULL)
-        {
-            free(ctx->network.send_addr);
-            ctx->network.send_addr = NULL;
-        }
-        if(ctx->network.receive_addr != NULL)
-        {
-            free(ctx->network.receive_addr);
-            ctx->network.receive_addr = NULL;
-        }
-    }
+
 
     return P101_FSM_EXIT;
 }
@@ -281,21 +269,6 @@ static p101_fsm_state_t error_state(const struct p101_env *env, struct p101_erro
 {
     struct context *ctx = (struct context *)arg;
 
-    if(ctx != NULL)
-    {
-        if(ctx->network.send_addr != NULL)
-        {
-            free(ctx->network.send_addr);
-            ctx->network.send_addr = NULL;
-        }
-        if(ctx->network.receive_addr != NULL)
-        {
-            free(ctx->network.receive_addr);
-            ctx->network.receive_addr = NULL;
-        }
-        free(ctx);
-        ctx = NULL;
-    }
     return P101_FSM_EXIT;
 }
 
