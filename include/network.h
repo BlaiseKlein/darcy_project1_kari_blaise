@@ -150,7 +150,7 @@ static p101_fsm_state_t send_packet(const struct p101_env *env, struct p101_erro
 
     while((size_t)total_sent < msg_size)
     {
-        bytes_sent = sendto(ctx->network.send_fd, &sending[total_sent], msg_size - (size_t)total_sent, 0, *send_addr, ctx->network.send_addr_len);
+        bytes_sent = sendto(ctx->network.send_fd, &sending[total_sent], msg_size - (size_t)total_sent, 0, send_addr, ctx->network.send_addr_len);
 
         if(bytes_sent == -1)
         {
@@ -171,7 +171,7 @@ static p101_fsm_state_t send_packet(const struct p101_env *env, struct p101_erro
 
     while((size_t)total_sent < ctx->network.msg_size)
     {
-        bytes_sent = sendto(ctx->network.send_fd, &sending[total_sent], ctx->network.msg_size - (size_t)total_sent, 0, *send_addr, ctx->network.send_addr_len);
+        bytes_sent = sendto(ctx->network.send_fd, &sending[total_sent], ctx->network.msg_size - (size_t)total_sent, 0, send_addr, ctx->network.send_addr_len);
 
         if(bytes_sent == -1)
         {
@@ -222,7 +222,7 @@ static p101_fsm_state_t handle_packet(const struct p101_env *env, struct p101_er
     while((size_t)total_received < msg_size)
     {
         ssize_t bytes_received = 0;
-        bytes_received         = recvfrom(ctx->network.receive_fd, &receiving[total_received], ctx->network.msg_size - (size_t)total_received, 0, (struct sockaddr *)&ctx->network.receive_addr, &ctx->network.receive_addr_len);
+        bytes_received         = recvfrom(ctx->network.receive_fd, &receiving[total_received], ctx->network.msg_size - (size_t)total_received, 0, (struct sockaddr *)ctx->network.receive_addr, &ctx->network.receive_addr_len);
 
         if(bytes_received == -1)
         {
@@ -318,7 +318,7 @@ static p101_fsm_state_t read_network(const struct p101_env *env, struct p101_err
         {
             ssize_t bytes_received = 0;
 
-            bytes_received = recvfrom(ctx->network.receive_fd, &receiving[total_received], sizeof(received) - (size_t)total_received, 0, (struct sockaddr *)&ctx->network.receive_addr, &ctx->network.receive_addr_len);
+            bytes_received = recvfrom(ctx->network.receive_fd, &receiving[total_received], sizeof(received) - (size_t)total_received, 0, (struct sockaddr *)ctx->network.receive_addr, &ctx->network.receive_addr_len);
 
             if(bytes_received == -1)
             {
