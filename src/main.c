@@ -204,9 +204,9 @@ static void parse_arguments(const struct p101_env *env, int argc, char *argv[], 
         }
     }
 
-    if(optind < argc)
+    if(optind < argc || optind > argc)
     {
-        usage(argv[0], EXIT_FAILURE, "Too many arguments.");
+        usage(argv[0], EXIT_FAILURE, "Invalid argument count.");
     }
 }
 
