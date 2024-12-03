@@ -176,18 +176,18 @@ static p101_fsm_state_t send_packet(const struct p101_env *env, struct p101_erro
             break;
         case DOWN:
             // final_x -= offset;
-            final_y--;
-            final_y--;
+            final_x--;
+            final_x--;
             break;
         case LEFT:
             // final_y += offset;
-            final_x++;
-            final_x++;
+            final_y++;
+            final_y++;
             break;
         case RIGHT:
             // final_y -= offset;
-            final_x--;
-            final_x--;
+            final_y--;
+            final_y--;
             break;
         case NONE:
             break;
