@@ -358,12 +358,12 @@ static p101_fsm_state_t read_network(const struct p101_env *env, struct p101_err
         return READ_INPUT;
     }
 
-    if(ctx->net_rdy == 0)
+    if(ctx->net_rdy == 1)
     {
         return HANDLE_PACKET;
     }
 
-    if(ctx->input_rdy == 0)
+    if(ctx->input_rdy == 1)
     {
         return SEND_PACKET;
     }

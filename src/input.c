@@ -91,7 +91,7 @@ enum move_direction getKeyboardInput(void)
         case KEY_LEFT:
             return LEFT;
         case KEY_RIGHT:
-            return RIGHT;
+            return NONE;
         default:
             return RIGHT;
     }
