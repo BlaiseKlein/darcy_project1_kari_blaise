@@ -43,7 +43,8 @@ enum move_direction
     RIGHT,
     LEFT,
     UP,
-    NONE
+    NONE,
+    EXIT
 };
 
 struct arguments

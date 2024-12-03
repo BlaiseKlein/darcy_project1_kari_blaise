@@ -33,20 +33,48 @@ void setUpController(struct input_state *state)
     state->controller = controller;
 }
 
+//
+// enum move_direction getControllerInput(const SDL_Event *event)
+// {
+//     const int quit = 6;
+//     if(event->type == SDL_CONTROLLERBUTTONDOWN)
+//     {
+//         switch(event->cbutton.button)
+//         {
+//             case UP:
+//                 return UP;
+//             case DOWN:
+//                 return DOWN;
+//             case LEFT:
+//                 return LEFT;
+//             case RIGHT:
+//                 return RIGHT;
+//             case NONE:
+//                 return NONE;
+//             case quit:
+//                 return EXIT;
+//             default:
+//                 return NONE;
+//         }
+//     }
+//     return NONE;
+// }
 enum move_direction getControllerInput(const SDL_Event *event)
 {
     if(event->type == SDL_CONTROLLERBUTTONDOWN)
     {
         switch(event->cbutton.button)
         {
-            case UP:
+            case SDL_CONTROLLER_BUTTON_DPAD_UP:
                 return UP;
-            case DOWN:
+            case SDL_CONTROLLER_BUTTON_DPAD_DOWN:
                 return DOWN;
-            case LEFT:
+            case SDL_CONTROLLER_BUTTON_DPAD_LEFT:
                 return LEFT;
-            case RIGHT:
+            case SDL_CONTROLLER_BUTTON_DPAD_RIGHT:
                 return RIGHT;
+            case SDL_CONTROLLER_BUTTON_BACK:    // Assign the back button to quit
+                return EXIT;
             default:
                 return NONE;
         }
@@ -92,6 +120,8 @@ enum move_direction getKeyboardInput(void)
             return LEFT;
         case KEY_RIGHT:
             return RIGHT;
+        case 'q':
+            return EXIT;
         default:
             return NONE;
     }

@@ -64,6 +64,9 @@ void move_node(struct board_state *board, enum move_direction move, bool is_host
                 break;
             case NONE:
                 break;
+            case EXIT:
+                mvprintw(0, 0, "exit called");
+                break;
             default:
                 mvprintw(0, 0, "Invalid move detected");
                 break;
@@ -86,6 +89,9 @@ void move_node(struct board_state *board, enum move_direction move, bool is_host
                 *y += 2;
                 break;
             case NONE:
+                break;
+            case EXIT:
+                mvprintw(0, 0, "exit called");
                 break;
             default:
                 mvprintw(0, 0, "Invalid move detected");
