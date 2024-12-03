@@ -121,7 +121,7 @@ static p101_fsm_state_t create_receiving_stream(const struct p101_env *env, stru
 
 static p101_fsm_state_t send_packet(const struct p101_env *env, struct p101_error *err, void *arg)
 {
-    int                    fd;
+    // int                    fd;
     struct context        *ctx = (struct context *)arg;
     ssize_t                bytes_sent;
     ssize_t                total_sent     = 0;
@@ -138,15 +138,15 @@ static p101_fsm_state_t send_packet(const struct p101_env *env, struct p101_erro
     memcpy(sending, &ready_message, msg_size);
     send_direction = ntohs((uint16_t)ctx->input.direction);
 
-    fd = open("/tmp/testing.fifo", O_RDONLY | O_WRONLY | O_CLOEXEC);
-
-    if(fd == -1)
-    {
-        free(sending);
-        return ERROR;
-    }
-    write(fd, "SP", 2);
-    close(fd);
+    // fd = open("/tmp/testing.fifo", O_RDONLY | O_WRONLY | O_CLOEXEC);
+    //
+    // if(fd == -1)
+    // {
+    //     free(sending);
+    //     return ERROR;
+    // }
+    // write(fd, "SP", 2);
+    // close(fd);
 
     while((size_t)total_sent < msg_size)
     {
@@ -197,7 +197,7 @@ static p101_fsm_state_t send_packet(const struct p101_env *env, struct p101_erro
 
 static p101_fsm_state_t handle_packet(const struct p101_env *env, struct p101_error *err, void *arg)
 {
-    int             fd;
+    // int             fd;
     ssize_t         total_received = 0;
     struct context *ctx            = (struct context *)arg;
     size_t          msg_size       = sizeof(ctx->input.direction);
@@ -209,15 +209,15 @@ static p101_fsm_state_t handle_packet(const struct p101_env *env, struct p101_er
     }
     memset(receiving, 0, msg_size);
 
-    fd = open("/tmp/testing.fifo", O_RDONLY | O_WRONLY | O_CLOEXEC);
-
-    if(fd == -1)
-    {
-        free(receiving);
-        return ERROR;
-    }
-    write(fd, "HP", 2);
-    close(fd);
+    // fd = open("/tmp/testing.fifo", O_RDONLY | O_WRONLY | O_CLOEXEC);
+    //
+    // if(fd == -1)
+    // {
+    //     free(receiving);
+    //     return ERROR;
+    // }
+    // write(fd, "HP", 2);
+    // close(fd);
 
     while((size_t)total_received < msg_size)
     {
@@ -248,13 +248,13 @@ static p101_fsm_state_t handle_packet(const struct p101_env *env, struct p101_er
 static p101_fsm_state_t read_input(const struct p101_env *env, struct p101_error *err, void *arg)
 {
     struct context *ctx = (struct context *)arg;
-    int             fd  = open("/tmp/testing.fifo", O_RDONLY | O_WRONLY | O_CLOEXEC);
-    if(fd == -1)
-    {
-        return ERROR;
-    }
-    write(fd, "\nRI", 3);
-    close(fd);
+    // int             fd  = open("/tmp/testing.fifo", O_RDONLY | O_WRONLY | O_CLOEXEC);
+    // if(fd == -1)
+    // {
+    //     return ERROR;
+    // }
+    // write(fd, "\nRI", 3);
+    // close(fd);
 
     ctx->input_rdy = 0;
     ctx->net_rdy   = 0;
@@ -278,7 +278,7 @@ static p101_fsm_state_t read_input(const struct p101_env *env, struct p101_error
 
 static p101_fsm_state_t read_network(const struct p101_env *env, struct p101_error *err, void *arg)
 {
-    int             fd;
+    // int             fd;
     const int       max_count = 10;
     struct context *ctx       = (struct context *)arg;
     uint16_t        received  = 0;
@@ -292,20 +292,20 @@ static p101_fsm_state_t read_network(const struct p101_env *env, struct p101_err
         return ERROR;
     }
 
-    fd = open("/tmp/testing.fifo", O_RDONLY | O_WRONLY | O_CLOEXEC);
-
-    if(fd == -1)
-    {
-        free(receiving);
-        return ERROR;
-    }
-    write(fd, "RN", 2);
-    test = poll(&fds, 1, max_count);
-    for(int i = 0; i <= test; i++)
-    {
-        write(fd, "RUN", 3);
-    }
-    close(fd);
+    // fd = open("/tmp/testing.fifo", O_RDONLY | O_WRONLY | O_CLOEXEC);
+    //
+    // if(fd == -1)
+    // {
+    //     free(receiving);
+    //     return ERROR;
+    // }
+    // write(fd, "RN", 2);
+    // test = poll(&fds, 1, max_count);
+    // for(int i = 0; i <= test; i++)
+    // {
+    //     write(fd, "RUN", 3);
+    // }
+    // close(fd);
 
     if(poll(&fds, 1, max_count) > 0)
     {
@@ -335,14 +335,14 @@ static p101_fsm_state_t read_network(const struct p101_env *env, struct p101_err
         memcpy(&received, receiving, msg_size);
     }
     free(receiving);
-    fd = open("/tmp/testing.fifo", O_RDONLY | O_WRONLY | O_CLOEXEC);
-
-    if(fd == -1)
-    {
-        return ERROR;
-    }
-    write(fd, "YE", 2);
-    close(fd);
+    // fd = open("/tmp/testing.fifo", O_RDONLY | O_WRONLY | O_CLOEXEC);
+    //
+    // if(fd == -1)
+    // {
+    //     return ERROR;
+    // }
+    // write(fd, "YE", 2);
+    // close(fd);
     if(ntohs(received) == CLOSE_CONNECTION_MESSAGE)
     {
         return SAFE_CLOSE;

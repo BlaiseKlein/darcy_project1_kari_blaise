@@ -63,7 +63,7 @@ static p101_fsm_state_t read_controller(const struct p101_env *env, struct p101_
 
 static p101_fsm_state_t read_keyboard(const struct p101_env *env, struct p101_error *err, void *arg)
 {
-    int                 fd;
+    // int                 fd;
     struct context     *ctx = (struct context *)arg;
     enum move_direction direction;
     direction            = getKeyboardInput();
@@ -73,14 +73,14 @@ static p101_fsm_state_t read_keyboard(const struct p101_env *env, struct p101_er
         ctx->input_rdy = 1;
     }
 
-    fd = open("/tmp/testing.fifo", O_RDONLY | O_WRONLY | O_CLOEXEC);
-
-    if(fd == -1)
-    {
-        return ERROR;
-    }
-    write(fd, "RK", 2);
-    close(fd);
+    // fd = open("/tmp/testing.fifo", O_RDONLY | O_WRONLY | O_CLOEXEC);
+    //
+    // if(fd == -1)
+    // {
+    //     return ERROR;
+    // }
+    // write(fd, "RK", 2);
+    // close(fd);
 
     return READ_NETWORK;
 }
