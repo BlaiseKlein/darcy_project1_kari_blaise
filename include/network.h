@@ -150,7 +150,7 @@ static p101_fsm_state_t send_packet(const struct p101_env *env, struct p101_erro
 
     while((size_t)total_sent < msg_size)
     {
-        bytes_sent = sendto(ctx->network.send_fd, &sending[total_sent], msg_size - (size_t)total_sent, 0, send_addr, ctx->network.send_addr_len);
+        bytes_sent = sendto(ctx->network.send_fd, &sending[total_sent], msg_size - (size_t)total_sent, 0, *send_addr, ctx->network.send_addr_len);
 
         if(bytes_sent == -1)
         {
@@ -171,7 +171,7 @@ static p101_fsm_state_t send_packet(const struct p101_env *env, struct p101_erro
 
     while((size_t)total_sent < ctx->network.msg_size)
     {
-        bytes_sent = sendto(ctx->network.send_fd, &sending[total_sent], ctx->network.msg_size - (size_t)total_sent, 0, send_addr, ctx->network.send_addr_len);
+        bytes_sent = sendto(ctx->network.send_fd, &sending[total_sent], ctx->network.msg_size - (size_t)total_sent, 0, *send_addr, ctx->network.send_addr_len);
 
         if(bytes_sent == -1)
         {
