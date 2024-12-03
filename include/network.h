@@ -317,15 +317,7 @@ static p101_fsm_state_t read_network(const struct p101_env *env, struct p101_err
         while((size_t)total_received < ctx->network.msg_size && count != max_count)
         {
             ssize_t bytes_received = 0;
-            fd                     = open("/tmp/testing.fifo", O_RDONLY | O_WRONLY | O_CLOEXEC);
 
-            if(fd == -1)
-            {
-                free(receiving);
-                return ERROR;
-            }
-            write(fd, "RN", 2);
-            close(fd);
             bytes_received = recvfrom(ctx->network.receive_fd, &receiving[total_received], sizeof(received), 0, (struct sockaddr *)&ctx->network.receive_addr, &ctx->network.receive_addr_len);
 
             if(bytes_received == -1)
@@ -343,7 +335,14 @@ static p101_fsm_state_t read_network(const struct p101_env *env, struct p101_err
         memcpy(&received, receiving, msg_size);
     }
     free(receiving);
+    fd = open("/tmp/testing.fifo", O_RDONLY | O_WRONLY | O_CLOEXEC);
 
+    if(fd == -1)
+    {
+        return ERROR;
+    }
+    write(fd, "YE", 2);
+    close(fd);
     if(ntohs(received) == CLOSE_CONNECTION_MESSAGE)
     {
         return SAFE_CLOSE;

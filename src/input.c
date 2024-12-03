@@ -69,10 +69,19 @@ enum move_direction wait_for_controller_input(void)
 
 enum move_direction getKeyboardInput(void)
 {
+    int fd;
     int ch;
     nodelay(stdscr, TRUE);
 
     ch = getch();
+    // fd                     = open("/tmp/testing.fifo", O_RDONLY | O_WRONLY | O_CLOEXEC);
+    //
+    // if(fd == -1)
+    // {
+    //     return ERROR;
+    // }
+    // write(fd, &ch, 1);
+    // close(fd);
     switch(ch)
     {
         case KEY_UP:
@@ -84,6 +93,6 @@ enum move_direction getKeyboardInput(void)
         case KEY_RIGHT:
             return RIGHT;
         default:
-            return NONE;
+            return RIGHT;
     }
 }
