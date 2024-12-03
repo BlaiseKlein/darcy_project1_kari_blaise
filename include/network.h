@@ -282,10 +282,10 @@ static p101_fsm_state_t read_network(const struct p101_env *env, struct p101_err
     const int       max_count = 10;
     struct context *ctx       = (struct context *)arg;
     uint16_t        received  = 0;
-    int             test      = 0;
-    size_t          msg_size  = sizeof(received);
-    struct pollfd   fds       = {ctx->network.receive_fd, POLLIN, 0};
-    char           *receiving = (char *)malloc(msg_size);
+    // int             test      = 0;
+    size_t        msg_size  = sizeof(received);
+    struct pollfd fds       = {ctx->network.receive_fd, POLLIN, 0};
+    char         *receiving = (char *)malloc(msg_size);
 
     if(receiving == NULL)
     {
