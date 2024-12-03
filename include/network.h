@@ -222,7 +222,7 @@ static p101_fsm_state_t handle_packet(const struct p101_env *env, struct p101_er
     while((size_t)total_received < msg_size)
     {
         ssize_t bytes_received = 0;
-        bytes_received         = recvfrom(ctx->network.receive_fd, &receiving[total_received], ctx->network.msg_size, 0, (struct sockaddr *)&ctx->network.receive_addr, &ctx->network.receive_addr_len);
+        bytes_received         = recvfrom(ctx->network.receive_fd, &receiving[total_received], ctx->network.msg_size - (size_t)total_received, 0, (struct sockaddr *)&ctx->network.receive_addr, &ctx->network.receive_addr_len);
 
         if(bytes_received == -1)
         {
