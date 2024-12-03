@@ -163,6 +163,10 @@ static p101_fsm_state_t send_packet(const struct p101_env *env, struct p101_erro
     // Precalculate final position
     final_x = (uint16_t)ctx->board.host_x;
     final_y = (uint16_t)ctx->board.host_y;
+#if defined(__clang__)
+    #pragma clang diagnostic push
+    #pragma clang diagnostic ignored "-Wcovered-switch-default"
+#endif
     switch(ctx->input.direction)
     {
         case UP:
@@ -194,6 +198,9 @@ static p101_fsm_state_t send_packet(const struct p101_env *env, struct p101_erro
             mvprintw(0, 0, "Invalid move detected");
             break;
     }
+#if defined(__clang__)
+    #pragma clang diagnostic pop
+#endif
     final_x = htons(final_x);
     final_y = htons(final_y);
 
@@ -338,10 +345,9 @@ static p101_fsm_state_t read_input(const struct p101_env *env, struct p101_error
 
     ctx->input_rdy         = 0;
     ctx->net_rdy           = 0;
-    ctx->network.current_x = NOTMOVING;
-    ctx->network.current_y = NOTMOVING;
+    ctx->network.current_x = NOTMOVING ctx->network.current_y = NOTMOVING
 
-    if(ctx->input.type == KEYBOARD)
+        if(ctx->input.type == KEYBOARD)
     {
         return READ_KEYBOARD;
     }

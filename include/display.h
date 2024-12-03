@@ -35,18 +35,18 @@ static p101_fsm_state_t sync_nodes(const struct p101_env *env, struct p101_error
     // int                 fd;
     struct context     *ctx        = (struct context *)arg;
     struct board_state *board      = &(ctx->board);
-    const int           not_moving = NOTMOVING;
+    const int           not_moving = NOTMOVING
 
-    // fd = open("/tmp/testing.fifo", O_RDONLY | O_WRONLY | O_CLOEXEC);
-    //
-    // if(fd == -1)
-    // {
-    //     return ERROR;
-    // }
-    // write(fd, "SN", 2);
-    // close(fd);
+        // fd = open("/tmp/testing.fifo", O_RDONLY | O_WRONLY | O_CLOEXEC);
+        //
+        // if(fd == -1)
+        // {
+        //     return ERROR;
+        // }
+        // write(fd, "SN", 2);
+        // close(fd);
 
-    if(ctx->input_rdy > 0 && ctx->input.direction != NONE)
+        if(ctx->input_rdy > 0 && ctx->input.direction != NONE)
     {
         move_node(board, ctx->input.direction, TRUE);
     }
