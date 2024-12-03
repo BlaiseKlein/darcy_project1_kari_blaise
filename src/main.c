@@ -80,7 +80,9 @@ int main(int argc, char *argv[])
             {READ_INPUT,              READ_CONTROLLER,         read_controller        },
             {READ_INPUT,              READ_KEYBOARD,           read_keyboard          },
             {READ_KEYBOARD,           READ_NETWORK,            read_network           },
+            {READ_KEYBOARD,           SAFE_CLOSE,              safe_close             },
             {READ_CONTROLLER,         READ_NETWORK,            read_network           },
+            {READ_CONTROLLER,         SAFE_CLOSE,              safe_close             },
             {READ_NETWORK,            HANDLE_PACKET,           handle_packet          },
             {READ_NETWORK,            SEND_PACKET,             send_packet            },
             {READ_NETWORK,            READ_INPUT,              read_input             },
@@ -232,7 +234,7 @@ static p101_fsm_state_t init(const struct p101_env *env, struct p101_error *err,
 {
     const struct context *ctx = (struct context *)arg;
 
-    printf("Press any button to start, Ctrl+C to exit\n");
+    printf("Press enter button on keyboard to start, \n'q' to exit on keyboard, or the back button to quit on controller\n");
     getchar();
 
     if(ctx->input.type == KEYBOARD)
@@ -250,7 +252,7 @@ static p101_fsm_state_t init(const struct p101_env *env, struct p101_error *err,
 static p101_fsm_state_t safe_close(const struct p101_env *env, struct p101_error *err, void *arg)
 {
     struct context *ctx = (struct context *)arg;
-
+    endwin();
     if(ctx != NULL)
     {
         if(ctx->network.send_addr != NULL)
@@ -263,8 +265,6 @@ static p101_fsm_state_t safe_close(const struct p101_env *env, struct p101_error
             free(ctx->network.receive_addr);
             ctx->network.receive_addr = NULL;
         }
-        free(ctx);
-        ctx = NULL;
     }
 
     return P101_FSM_EXIT;
