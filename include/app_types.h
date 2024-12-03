@@ -10,6 +10,7 @@
 #include <p101_fsm/fsm.h>
 #include <p101_posix/p101_unistd.h>
 #include <stdint.h>
+#define NOTMOVING 255;
 
 enum application_states
 {
@@ -79,8 +80,8 @@ struct network_state
     socklen_t                receive_addr_len;
     in_port_t                receive_port;
     uint16_t                 current_move;
-    uint8_t                 current_x;
-    uint8_t                 current_y;
+    uint16_t                 current_x;
+    uint16_t                 current_y;
 };
 
 struct board_state

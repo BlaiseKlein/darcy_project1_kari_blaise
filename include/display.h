@@ -19,6 +19,7 @@
 // void setupWindow(struct board_state *board);
 void shutdown_window(void);
 void move_node(struct board_state *board, enum move_direction move, bool is_host);
+void move_xy(struct board_state *board, int new_x, int new_y, bool is_host);
 // void                    refresh_screen(struct board_state *board);
 bool                    check_bound_collision(int x, int y, int row, int col);
 static p101_fsm_state_t sync_nodes(const struct p101_env *env, struct p101_error *err, void *arg);
@@ -32,8 +33,9 @@ static p101_fsm_state_t refresh_screen(const struct p101_env *env, struct p101_e
 static p101_fsm_state_t sync_nodes(const struct p101_env *env, struct p101_error *err, void *arg)
 {
     // int                 fd;
-    struct context     *ctx   = (struct context *)arg;
-    struct board_state *board = &(ctx->board);
+    struct context     *ctx        = (struct context *)arg;
+    struct board_state *board      = &(ctx->board);
+    const int           not_moving = NOTMOVING;
 
     // fd = open("/tmp/testing.fifo", O_RDONLY | O_WRONLY | O_CLOEXEC);
     //
@@ -48,9 +50,10 @@ static p101_fsm_state_t sync_nodes(const struct p101_env *env, struct p101_error
     {
         move_node(board, ctx->input.direction, TRUE);
     }
-    if(ctx->net_rdy > 0 && (enum move_direction)ctx->network.current_move != NONE)
+    if(ctx->net_rdy > 0 && ctx->network.current_x != not_moving && ctx->network.current_y != not_moving)
     {
-        move_node(board, (enum move_direction)ctx->network.current_move, FALSE);
+        // move_node(board, (enum move_direction)ctx->network.current_move, FALSE);
+        move_xy(board, ctx->network.current_x, ctx->network.current_y, FALSE);
     }
 
     return REFRESH_SCREEN;

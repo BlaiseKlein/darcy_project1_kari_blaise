@@ -122,21 +122,21 @@ static p101_fsm_state_t create_receiving_stream(const struct p101_env *env, stru
 static p101_fsm_state_t send_packet(const struct p101_env *env, struct p101_error *err, void *arg)
 {
     // int                    fd;
+    uint16_t               final_x;
+    uint16_t               final_y;
     struct context        *ctx = (struct context *)arg;
     ssize_t                bytes_sent;
-    ssize_t                total_sent     = 0;
-    uint16_t               send_direction = 0;
-    const struct sockaddr *send_addr      = (struct sockaddr *)ctx->network.send_addr;
-    const uint16_t         ready_message  = htons(READYTOSENDMSG);
-    size_t                 msg_size       = sizeof(ready_message);
-    size_t                 msg2_size      = sizeof(send_direction);
-    char                  *sending        = (char *)malloc(msg_size);
+    ssize_t                total_sent    = 0;
+    const struct sockaddr *send_addr     = (struct sockaddr *)ctx->network.send_addr;
+    const uint16_t         ready_message = htons(READYTOSENDMSG);
+    size_t                 msg_size      = sizeof(ready_message);
+    size_t                 msg2_size     = sizeof(uint16_t);
+    char                  *sending       = (char *)malloc(msg_size);
     if(sending == NULL)
     {
         return ERROR;
     }
     memcpy(sending, &ready_message, msg_size);
-    send_direction = htons((uint16_t)ctx->input.direction);
 
     // fd = open("/tmp/testing.fifo", O_RDONLY | O_WRONLY | O_CLOEXEC);
     //
@@ -160,6 +160,44 @@ static p101_fsm_state_t send_packet(const struct p101_env *env, struct p101_erro
         total_sent += bytes_sent;
     }
 
+    // Precalculate final position
+    final_x = (uint16_t)ctx->board.host_x;
+    final_y = (uint16_t)ctx->board.host_y;
+    switch(ctx->input.direction)
+    {
+        case UP:
+            // final_x += offset;
+            final_x++;
+            final_x++;
+            break;
+        case DOWN:
+            // final_x -= offset;
+            final_y--;
+            final_y--;
+            break;
+        case LEFT:
+            // final_y += offset;
+            final_x++;
+            final_x++;
+            break;
+        case RIGHT:
+            // final_y -= offset;
+            final_x--;
+            final_x--;
+            break;
+        case NONE:
+            break;
+        case EXIT:
+            mvprintw(0, 0, "exit called");
+            break;
+        default:
+            mvprintw(0, 0, "Invalid move detected");
+            break;
+    }
+    final_x = htons(final_x);
+    final_y = htons(final_y);
+
+    // Send new final X coord
     total_sent = 0;
     free(sending);
     sending = (char *)malloc(msg2_size);
@@ -167,7 +205,7 @@ static p101_fsm_state_t send_packet(const struct p101_env *env, struct p101_erro
     {
         return ERROR;
     }
-    memcpy(sending, &send_direction, msg2_size);
+    memcpy(sending, &final_x, msg2_size);
 
     while((size_t)total_sent < ctx->network.msg_size)
     {
@@ -180,6 +218,29 @@ static p101_fsm_state_t send_packet(const struct p101_env *env, struct p101_erro
         }
         total_sent += bytes_sent;
     }
+
+    // Send new final Y coord
+    total_sent = 0;
+    free(sending);
+    sending = (char *)malloc(msg2_size);
+    if(sending == NULL)
+    {
+        return ERROR;
+    }
+    memcpy(sending, &final_y, msg2_size);
+
+    while((size_t)total_sent < ctx->network.msg_size)
+    {
+        bytes_sent = sendto(ctx->network.send_fd, &sending[total_sent], ctx->network.msg_size - (size_t)total_sent, 0, send_addr, ctx->network.send_addr_len);
+
+        if(bytes_sent == -1)
+        {
+            free(sending);
+            return ERROR;
+        }
+        total_sent += bytes_sent;
+    }
+
     free(sending);
 
     if(ctx->net_rdy > 0)
@@ -219,6 +280,7 @@ static p101_fsm_state_t handle_packet(const struct p101_env *env, struct p101_er
     // write(fd, "HP", 2);
     // close(fd);
 
+    // Receive X
     while((size_t)total_received < msg_size)
     {
         ssize_t bytes_received = 0;
@@ -232,9 +294,27 @@ static p101_fsm_state_t handle_packet(const struct p101_env *env, struct p101_er
         total_received += bytes_received;
     }
 
-    memcpy(&ctx->network.current_move, receiving, ctx->network.msg_size);
+    memcpy(&ctx->network.current_x, receiving, ctx->network.msg_size);
+    ctx->network.current_x = ntohs(ctx->network.current_x);
+
+    // Receive Y
+    while((size_t)total_received < msg_size)
+    {
+        ssize_t bytes_received = 0;
+        bytes_received         = recvfrom(ctx->network.receive_fd, &receiving[total_received], ctx->network.msg_size - (size_t)total_received, 0, (struct sockaddr *)ctx->network.receive_addr, &ctx->network.receive_addr_len);
+
+        if(bytes_received == -1)
+        {
+            free(receiving);
+            return ERROR;
+        }
+        total_received += bytes_received;
+    }
+
+    memcpy(&ctx->network.current_y, receiving, ctx->network.msg_size);
+    ctx->network.current_y = ntohs(ctx->network.current_y);
+
     free(receiving);
-    ctx->network.current_move = ntohs(ctx->network.current_move);
 
     return SYNC_NODES;
 }
@@ -256,8 +336,10 @@ static p101_fsm_state_t read_input(const struct p101_env *env, struct p101_error
     // write(fd, "\nRI", 3);
     // close(fd);
 
-    ctx->input_rdy = 0;
-    ctx->net_rdy   = 0;
+    ctx->input_rdy         = 0;
+    ctx->net_rdy           = 0;
+    ctx->network.current_x = NOTMOVING;
+    ctx->network.current_y = NOTMOVING;
 
     if(ctx->input.type == KEYBOARD)
     {
