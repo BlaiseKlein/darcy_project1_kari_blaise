@@ -282,6 +282,7 @@ static p101_fsm_state_t read_network(const struct p101_env *env, struct p101_err
     const int       max_count = 10;
     struct context *ctx       = (struct context *)arg;
     uint16_t        received  = 0;
+    int             test      = 0;
     size_t          msg_size  = sizeof(received);
     struct pollfd   fds       = {ctx->network.receive_fd, POLLIN, 0};
     char           *receiving = (char *)malloc(msg_size);
@@ -299,6 +300,11 @@ static p101_fsm_state_t read_network(const struct p101_env *env, struct p101_err
         return ERROR;
     }
     write(fd, "RN", 2);
+    test = poll(&fds, 1, max_count);
+    for(int i = 0; i <= test; i++)
+    {
+        write(fd, "RUN", 3);
+    }
     close(fd);
 
     if(poll(&fds, 1, max_count) > 0)
@@ -308,10 +314,19 @@ static p101_fsm_state_t read_network(const struct p101_env *env, struct p101_err
 
         memcpy(receiving, &received, msg_size);
 
-        while((size_t)total_received < ctx->network.msg_size)
+        while((size_t)total_received < ctx->network.msg_size && count != max_count)
         {
             ssize_t bytes_received = 0;
-            bytes_received         = recvfrom(ctx->network.receive_fd, &receiving[total_received], sizeof(received), 0, (struct sockaddr *)&ctx->network.receive_addr, &ctx->network.receive_addr_len);
+            fd                     = open("/tmp/testing.fifo", O_RDONLY | O_WRONLY | O_CLOEXEC);
+
+            if(fd == -1)
+            {
+                free(receiving);
+                return ERROR;
+            }
+            write(fd, "RN", 2);
+            close(fd);
+            bytes_received = recvfrom(ctx->network.receive_fd, &receiving[total_received], sizeof(received), 0, (struct sockaddr *)&ctx->network.receive_addr, &ctx->network.receive_addr_len);
 
             if(bytes_received == -1)
             {
