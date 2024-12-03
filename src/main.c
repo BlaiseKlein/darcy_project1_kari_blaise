@@ -253,10 +253,7 @@ static p101_fsm_state_t init(const struct p101_env *env, struct p101_error *err,
 
 static p101_fsm_state_t safe_close(const struct p101_env *env, struct p101_error *err, void *arg)
 {
-    struct context *ctx = (struct context *)arg;
     endwin();
-
-
     return P101_FSM_EXIT;
 }
 
@@ -267,8 +264,6 @@ static p101_fsm_state_t safe_close(const struct p101_env *env, struct p101_error
 
 static p101_fsm_state_t error_state(const struct p101_env *env, struct p101_error *err, void *arg)
 {
-    struct context *ctx = (struct context *)arg;
-
     return P101_FSM_EXIT;
 }
 
