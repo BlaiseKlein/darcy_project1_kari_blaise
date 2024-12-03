@@ -14,6 +14,7 @@
 #include <inttypes.h>
 #include <ncurses.h>
 #include <netinet/in.h>
+#include <poll.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -279,15 +280,11 @@ static p101_fsm_state_t read_network(const struct p101_env *env, struct p101_err
 {
     int             fd;
     const int       max_count = 10;
-    int             count     = 0;
-    int             ready     = 0;
-    fd_set          readfds;
-    int             select_fds     = 1;
-    ssize_t         total_received = 0;
-    struct context *ctx            = (struct context *)arg;
-    uint16_t        received       = 0;
-    size_t          msg_size       = sizeof(received);
-    char           *receiving      = (char *)malloc(msg_size);
+    struct context *ctx       = (struct context *)arg;
+    uint16_t        received  = 0;
+    size_t          msg_size  = sizeof(received);
+    struct pollfd   fds       = {ctx->network.receive_fd, POLLIN, 0};
+    char           *receiving = (char *)malloc(msg_size);
 
     if(receiving == NULL)
     {
@@ -304,25 +301,11 @@ static p101_fsm_state_t read_network(const struct p101_env *env, struct p101_err
     write(fd, "RN", 2);
     close(fd);
 
-// Clear the socket set
-#ifndef __clang_analyzer__
-    FD_ZERO(&readfds);
-#endif
-
-#if defined(__FreeBSD__) && defined(__GNUC__)
-    #pragma GCC diagnostic push
-    #pragma GCC diagnostic ignored "-Wsign-conversion"
-#endif
-    // Add the server socket to the set
-    FD_SET(ctx->network.receive_port, &readfds);
-#if defined(__FreeBSD__) && defined(__GNUC__)
-    #pragma GCC diagnostic pop
-#endif
-
-    ready = select(select_fds + 1, &readfds, 0, NULL, NULL);
-
-    if(ready > 0)
+    if(poll(&fds, 1, max_count) > 0)
     {
+        ssize_t total_received = 0;
+        int     count          = 0;
+
         memcpy(receiving, &received, msg_size);
 
         while((size_t)total_received < ctx->network.msg_size)
