@@ -179,7 +179,7 @@ static void parse_arguments(const struct p101_env *env, int argc, char *argv[], 
                 {
                     ctx->input.type = KEYBOARD;
                 }
-                if(strcmp(input_type, "controller") == 0)
+                else if(strcmp(input_type, "controller") == 0)
                 {
                     ctx->input.type = CONTROLLER;
                 }
@@ -269,7 +269,6 @@ static p101_fsm_state_t safe_close(const struct p101_env *env, struct p101_error
 
 static p101_fsm_state_t error_state(const struct p101_env *env, struct p101_error *err, void *arg)
 {
-
     fprintf(stderr, "Usage: %s -i <sending_ip> -I <receiving_ip> -p <sending_port> -P <receiving_port>\n", "./game");
     fputs("Options:\n", stderr);
     fputs("  -i  <sending_ip> The IP address of this system\n", stderr);
@@ -279,7 +278,6 @@ static p101_fsm_state_t error_state(const struct p101_env *env, struct p101_erro
     fputs("  -c  <device type> The device to use: controller or keyboard\n", stderr);
 
     return P101_FSM_EXIT;
-
 }
 
 #pragma GCC diagnostic pop
