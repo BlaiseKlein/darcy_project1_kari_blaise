@@ -46,26 +46,54 @@ void move_node(struct board_state *board, enum move_direction move, bool is_host
     #pragma clang diagnostic push
     #pragma clang diagnostic ignored "-Wcovered-switch-default"
 #endif
-    switch(move)
+    if (is_host)
     {
-        case UP:
-            *x += 2;
+        switch(move)
+        {
+            case UP:
+                *x += 2;
             break;
-        case DOWN:
-            *x -= 2;
+            case DOWN:
+                *x -= 2;
             break;
-        case LEFT:
-            *y -= 2;
+            case LEFT:
+                *y -= 2;
             break;
-        case RIGHT:
-            *y += 2;
+            case RIGHT:
+                *y += 2;
             break;
-        case NONE:
+            case NONE:
+                break;
+            default:
+                mvprintw(0, 0, "Invalid move detected");
             break;
-        default:
-            mvprintw(0, 0, "Invalid move detected");
+        }
+
+    } else
+    {
+        switch(move)
+        {
+            case UP:
+                *x -= 2;
             break;
+            case DOWN:
+                *x += 2;
+            break;
+            case LEFT:
+                *y += 2;
+            break;
+            case RIGHT:
+                *y -= 2;
+            break;
+            case NONE:
+                break;
+            default:
+                mvprintw(0, 0, "Invalid move detected");
+            break;
+        }
+
     }
+
 
 #if defined(__clang__)
     #pragma clang diagnostic pop
