@@ -46,7 +46,7 @@ void move_node(struct board_state *board, enum move_direction move, bool is_host
     #pragma clang diagnostic push
     #pragma clang diagnostic ignored "-Wcovered-switch-default"
 #endif
-    if(is_host)
+    if(!is_host)
     {
         switch(move)
         {
@@ -57,10 +57,10 @@ void move_node(struct board_state *board, enum move_direction move, bool is_host
                 *x -= 2;
                 break;
             case LEFT:
-                *y -= 2;
+                *y += 2;
                 break;
             case RIGHT:
-                *y += 2;
+                *y -= 2;
                 break;
             case NONE:
                 break;
@@ -80,10 +80,10 @@ void move_node(struct board_state *board, enum move_direction move, bool is_host
                 *x += 2;
                 break;
             case LEFT:
-                *y += 2;
+                *y -= 2;
                 break;
             case RIGHT:
-                *y -= 2;
+                *y += 2;
                 break;
             case NONE:
                 break;
