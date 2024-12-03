@@ -127,7 +127,9 @@ int main(int argc, char *argv[])
 
 static void parse_arguments(const struct p101_env *env, int argc, char *argv[], struct context *ctx)
 {
-    int opt;
+    int       opt;
+    const int help_args = 2;
+    const int all_args  = 11;
 
     opterr = 0;
 
@@ -204,7 +206,7 @@ static void parse_arguments(const struct p101_env *env, int argc, char *argv[], 
         }
     }
 
-    if(optind < argc || optind > argc)
+    if(argc != help_args && argc != all_args)
     {
         usage(argv[0], EXIT_FAILURE, "Invalid argument count.");
     }
