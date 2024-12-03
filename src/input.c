@@ -69,7 +69,7 @@ enum move_direction wait_for_controller_input(void)
 
 enum move_direction getKeyboardInput(void)
 {
-    int fd;
+    // int fd;
     int ch;
     nodelay(stdscr, TRUE);
 
