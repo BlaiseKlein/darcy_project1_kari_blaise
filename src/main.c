@@ -269,6 +269,7 @@ static p101_fsm_state_t safe_close(const struct p101_env *env, struct p101_error
 
 static p101_fsm_state_t error_state(const struct p101_env *env, struct p101_error *err, void *arg)
 {
+    printf("A network error has occurred, validate the IP addresses and ports");
     fprintf(stderr, "Usage: %s -i <sending_ip> -I <receiving_ip> -p <sending_port> -P <receiving_port>\n", "./game");
     fputs("Options:\n", stderr);
     fputs("  -i  <sending_ip> The IP address of this system\n", stderr);
