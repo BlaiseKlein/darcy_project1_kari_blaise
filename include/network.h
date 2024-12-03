@@ -136,7 +136,7 @@ static p101_fsm_state_t send_packet(const struct p101_env *env, struct p101_erro
         return ERROR;
     }
     memcpy(sending, &ready_message, msg_size);
-    send_direction = ntohs((uint16_t)ctx->input.direction);
+    send_direction = htons((uint16_t)ctx->input.direction);
 
     // fd = open("/tmp/testing.fifo", O_RDONLY | O_WRONLY | O_CLOEXEC);
     //
@@ -200,14 +200,14 @@ static p101_fsm_state_t handle_packet(const struct p101_env *env, struct p101_er
     // int             fd;
     ssize_t         total_received = 0;
     struct context *ctx            = (struct context *)arg;
-    size_t          msg_size       = sizeof((uint16_t)ctx->input.direction);
+    size_t          msg_size       = sizeof(uint16_t);
     char           *receiving      = NULL;
     receiving                      = (char *)malloc(msg_size);
     if(receiving == NULL)
     {
         return ERROR;
     }
-    memset(receiving, ctx->input.direction, msg_size);
+    memset(receiving, ntohs((uint16_t)ctx->input.direction), msg_size);
 
     // fd = open("/tmp/testing.fifo", O_RDONLY | O_WRONLY | O_CLOEXEC);
     //
