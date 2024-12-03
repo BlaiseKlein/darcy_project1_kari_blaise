@@ -167,6 +167,7 @@ static p101_fsm_state_t send_packet(const struct p101_env *env, struct p101_erro
     #pragma clang diagnostic push
     #pragma clang diagnostic ignored "-Wcovered-switch-default"
 #endif
+    printf("Direction: %u", (unsigned int)ctx->input.direction);
     switch(ctx->input.direction)
     {
         case UP:
@@ -275,7 +276,7 @@ static p101_fsm_state_t handle_packet(const struct p101_env *env, struct p101_er
     {
         return ERROR;
     }
-    memset(receiving, ntohs((uint16_t)ctx->input.direction), msg_size);
+    memset(receiving, ntohs((uint16_t)total_received), msg_size);
 
     // fd = open("/tmp/testing.fifo", O_RDONLY | O_WRONLY | O_CLOEXEC);
     //
@@ -303,6 +304,7 @@ static p101_fsm_state_t handle_packet(const struct p101_env *env, struct p101_er
 
     memcpy(&ctx->network.current_x, receiving, ctx->network.msg_size);
     ctx->network.current_x = ntohs(ctx->network.current_x);
+    memset(receiving, ntohs((uint16_t)total_received), msg_size);
 
     // Receive Y
     while((size_t)total_received < msg_size)
