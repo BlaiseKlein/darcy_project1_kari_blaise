@@ -37,6 +37,22 @@ void shutdown_window(void)
     endwin();
 }
 
+void move_xy(struct board_state *board, int new_x, int new_y, bool is_host)
+{
+    int *x = is_host ? &board->host_x : &board->net_x;
+    int *y = is_host ? &board->host_y : &board->net_y;
+
+    *x = new_x;
+    *y = new_y;
+
+    if(check_bound_collision(*x, *y, board->length, board->width))
+    {
+        mvprintw(0, 0, "Collision detected! Player reset.");
+        *x = board->length / 2;
+        *y = board->width / 2;
+    }
+}
+
 void move_node(struct board_state *board, enum move_direction move, bool is_host)
 {
     int *x = is_host ? &board->host_x : &board->net_x;

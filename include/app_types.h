@@ -78,6 +78,8 @@ struct network_state
     socklen_t                receive_addr_len;
     in_port_t                receive_port;
     uint16_t                 current_move;
+    uint8_t                 current_x;
+    uint8_t                 current_y;
 };
 
 struct board_state
