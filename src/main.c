@@ -182,6 +182,9 @@ static void parse_arguments(const struct p101_env *env, int argc, char *argv[], 
                 if(strcmp(input_type, "controller") == 0)
                 {
                     ctx->input.type = CONTROLLER;
+                } else
+                {
+                    usage(argv[0], EXIT_SUCCESS, "-c requires either \"keyboard\" or \"controller\" as an input");
                 }
                 break;
             }
@@ -253,9 +256,7 @@ static p101_fsm_state_t init(const struct p101_env *env, struct p101_error *err,
 
 static p101_fsm_state_t safe_close(const struct p101_env *env, struct p101_error *err, void *arg)
 {
-    struct context *ctx = (struct context *)arg;
     endwin();
-
 
     return P101_FSM_EXIT;
 }
@@ -267,8 +268,6 @@ static p101_fsm_state_t safe_close(const struct p101_env *env, struct p101_error
 
 static p101_fsm_state_t error_state(const struct p101_env *env, struct p101_error *err, void *arg)
 {
-    struct context *ctx = (struct context *)arg;
-
     return P101_FSM_EXIT;
 }
 
