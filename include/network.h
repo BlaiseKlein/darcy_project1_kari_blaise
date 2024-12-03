@@ -253,7 +253,7 @@ static p101_fsm_state_t read_input(const struct p101_env *env, struct p101_error
     {
         return ERROR;
     }
-    write(fd, "RI", 2);
+    write(fd, "\nRI", 3);
     close(fd);
 
     ctx->input_rdy = 0;
@@ -318,7 +318,7 @@ static p101_fsm_state_t read_network(const struct p101_env *env, struct p101_err
         {
             ssize_t bytes_received = 0;
 
-            bytes_received = recvfrom(ctx->network.receive_fd, &receiving[total_received], sizeof(received), 0, (struct sockaddr *)&ctx->network.receive_addr, &ctx->network.receive_addr_len);
+            bytes_received = recvfrom(ctx->network.receive_fd, &receiving[total_received], sizeof(received) - (size_t)total_received, 0, (struct sockaddr *)&ctx->network.receive_addr, &ctx->network.receive_addr_len);
 
             if(bytes_received == -1)
             {
