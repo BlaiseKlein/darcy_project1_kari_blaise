@@ -133,7 +133,7 @@ static void parse_arguments(const struct p101_env *env, int argc, char *argv[], 
 
     opterr = 0;
 
-    while((opt = p101_getopt(env, argc, argv, "i:I:p:P:c:")) != -1)
+    while((opt = p101_getopt(env, argc, argv, "i:I:p:P:c:h")) != -1)
     {
         switch(opt)
         {
@@ -223,7 +223,7 @@ _Noreturn static void usage(const char *program_name, int exit_code, const char 
         fprintf(stderr, "%s\n", message);
     }
 
-    fprintf(stderr, "Usage: %s -i <sending_ip> -I <receiving_ip> -p <sending_port> -P <receiving_port>\n", program_name);
+    fprintf(stderr, "Usage: %s -i <sending_ip> -I <receiving_ip> -p <sending_port> -P <receiving_port> -c <device_type>\n", program_name);
     fputs("Options:\n", stderr);
     fputs("  -i  <sending_ip> The IP address of this system\n", stderr);
     fputs("  -I  <receiving_ip> The IP address of the other connected system\n", stderr);
@@ -269,8 +269,8 @@ static p101_fsm_state_t safe_close(const struct p101_env *env, struct p101_error
 
 static p101_fsm_state_t error_state(const struct p101_env *env, struct p101_error *err, void *arg)
 {
-    printf("A network error has occurred, validate the IP addresses and ports");
-    fprintf(stderr, "Usage: %s -i <sending_ip> -I <receiving_ip> -p <sending_port> -P <receiving_port>\n", "./game");
+    printf("A network error has occurred, validate the IP addresses and ports\n");
+    fprintf(stderr, "Usage: %s -i <sending_ip> -I <receiving_ip> -p <sending_port> -P <receiving_port> -c <device_type>\n", "./game");
     fputs("Options:\n", stderr);
     fputs("  -i  <sending_ip> The IP address of this system\n", stderr);
     fputs("  -I  <receiving_ip> The IP address of the other connected system\n", stderr);
