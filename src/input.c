@@ -132,7 +132,7 @@ enum move_direction getTimer(void)
 {
     int ch;
 
-    const int max           = 99;
+    const int max           = 9;
     const int direction_max = 5;
     int       randomNumber  = rand() % max;    // Generate a number between 0 and 5
     nodelay(stdscr, TRUE);

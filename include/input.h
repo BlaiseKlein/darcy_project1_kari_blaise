@@ -112,7 +112,7 @@ static p101_fsm_state_t read_timer(const struct p101_env *env, struct p101_error
         return SAFE_CLOSE;
     }
     ctx->input.direction = direction;
-    if(direction != NONE && current_time - ctx->input.last_send > 2)
+    if(direction != NONE && current_time - ctx->input.last_send > 1)
     {
         ctx->input_rdy       = 1;
         ctx->input.last_send = current_time;
