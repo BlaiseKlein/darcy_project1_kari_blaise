@@ -22,6 +22,7 @@ enum application_states
     READ_CONTROLLER,
     READ_KEYBOARD,
     READ_NETWORK,
+    READ_TIMER,
     SEND_PACKET,
     HANDLE_PACKET,
     SYNC_NODES,

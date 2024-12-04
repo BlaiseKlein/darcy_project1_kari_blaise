@@ -79,8 +79,10 @@ int main(int argc, char *argv[])
             {SETUP_WINDOW,            ERROR,                   error_state            },
             {READ_INPUT,              READ_CONTROLLER,         read_controller        },
             {READ_INPUT,              READ_KEYBOARD,           read_keyboard          },
+            {READ_INPUT,              READ_TIMER,              read_timer             },
             {READ_KEYBOARD,           READ_NETWORK,            read_network           },
             {READ_KEYBOARD,           SAFE_CLOSE,              safe_close             },
+            {READ_TIMER,              READ_NETWORK,            read_network           },
             {READ_CONTROLLER,         READ_NETWORK,            read_network           },
             {READ_CONTROLLER,         SAFE_CLOSE,              safe_close             },
             {READ_NETWORK,            HANDLE_PACKET,           handle_packet          },
@@ -173,7 +175,7 @@ static void parse_arguments(const struct p101_env *env, int argc, char *argv[], 
                 const char *input_type = optarg;
                 if(input_type == NULL)
                 {
-                    usage(argv[0], EXIT_SUCCESS, "-c requires either \"keyboard\" or \"controller\" as an input");
+                    usage(argv[0], EXIT_SUCCESS, "-c requires either \"keyboard\" or \"controller\" or \"timer\" as an input");
                 }
                 if(strcmp(input_type, "keyboard") == 0)
                 {
@@ -183,9 +185,13 @@ static void parse_arguments(const struct p101_env *env, int argc, char *argv[], 
                 {
                     ctx->input.type = CONTROLLER;
                 }
+                else if(strcmp(input_type, "timer") == 0)
+                {
+                    ctx->input.type = TIMER;
+                }
                 else
                 {
-                    usage(argv[0], EXIT_SUCCESS, "-c requires either \"keyboard\" or \"controller\" as an input");
+                    usage(argv[0], EXIT_SUCCESS, "-c requires either \"keyboard\" or \"controller\" or \"timer\" as an input");
                 }
                 break;
             }
@@ -229,7 +235,7 @@ _Noreturn static void usage(const char *program_name, int exit_code, const char 
     fputs("  -I  <receiving_ip> The IP address of the other connected system\n", stderr);
     fputs("  -p  <sending_port> The port used to send updates from this system.\n", stderr);
     fputs("  -P  <receiving_port> The port used to receive updates from the paired system\n", stderr);
-    fputs("  -c  <device type> The device to use: controller or keyboard\n", stderr);
+    fputs("  -c  <device type> The device to use: controller or keyboard or timer\n", stderr);
     exit(exit_code);
 }
 

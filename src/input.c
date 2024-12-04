@@ -126,3 +126,31 @@ enum move_direction getKeyboardInput(void)
             return NONE;
     }
 }
+
+enum move_direction getTimer(void)
+
+{
+    const int max           = 50;
+    const int direction_max = 5;
+    int       randomNumber  = rand() % max;    // Generate a number between 0 and 5
+    if(randomNumber < direction_max)
+    {
+        switch(randomNumber)
+        {
+            case 0:
+                return UP;
+            case 1:
+                return DOWN;
+            case 2:
+                return LEFT;
+            case 3:
+                return RIGHT;
+            default:
+                return NONE;    // Fallback
+        }
+    }
+    else
+    {
+        return NONE;
+    }
+}
