@@ -21,7 +21,7 @@
 #include <string.h>
 #include <sys/socket.h>
 #include <unistd.h>
-#define READYTOSENDMSG 2
+#define READYTOSENDMSG 12
 #define CLOSE_CONNECTION_MESSAGE 7
 
 in_port_t parse_in_port_t(const char *port_str, int *err);
@@ -235,6 +235,10 @@ static p101_fsm_state_t handle_packet(const struct p101_env *env, struct p101_er
     memcpy(&ctx->network.current_move, receiving, ctx->network.msg_size);
     free(receiving);
     ctx->network.current_move = ntohs(ctx->network.current_move);
+    if (ctx->network.current_move == READYTOSENDMSG)
+    {
+        ctx->net_rdy = 0;
+    }
 
     return SYNC_NODES;
 }
