@@ -8,15 +8,16 @@
 
 in_port_t parse_in_port_t(const char *str, int *err)
 {
-    char     *endptr;
-    uintmax_t parsed_value;
+    char *endptr;
+    long  parsed_value;
+    *err = 0;
 
     errno        = 0;
-    parsed_value = strtoumax(str, &endptr, BASE_TEN);
+    parsed_value = strtol(str, &endptr, BASE_TEN);
 
     if(errno != 0)
     {
-        *err = errno;
+        *err = -3;
     }
 
     // Check if there are any non-numeric characters in the input string

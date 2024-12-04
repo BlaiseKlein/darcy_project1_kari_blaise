@@ -5,7 +5,19 @@
 #ifndef APP_TYPES_H
 #define APP_TYPES_H
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wswitch-default"
+#ifdef __clang__
+    #pragma clang diagnostic push
+    #pragma clang diagnostic ignored "-Wreserved-macro-identifier"
+    #pragma clang diagnostic ignored "-Wreserved-identifier"
+    #pragma clang diagnostic ignored "-Wdocumentation-unknown-command"
+#endif
 #include <SDL2/SDL.h>
+#pragma GCC diagnostic pop
+#ifdef __clang__
+    #pragma clang diagnostic pop
+#endif
 #include <netinet/in.h>
 #include <p101_fsm/fsm.h>
 #include <p101_posix/p101_unistd.h>

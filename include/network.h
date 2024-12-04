@@ -6,7 +6,19 @@
 #define NETWORK_H
 
 #include "app_types.h"
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wswitch-default"
+#ifdef __clang__
+    #pragma clang diagnostic push
+    #pragma clang diagnostic ignored "-Wreserved-macro-identifier"
+    #pragma clang diagnostic ignored "-Wreserved-identifier"
+    #pragma clang diagnostic ignored "-Wdocumentation-unknown-command"
+#endif
 #include <SDL2/SDL.h>
+#pragma GCC diagnostic pop
+#ifdef __clang__
+    #pragma clang diagnostic pop
+#endif
 #include <arpa/inet.h>
 #include <errno.h>
 #include <fcntl.h>
@@ -55,6 +67,7 @@ static p101_fsm_state_t create_sending_stream(const struct p101_env *env, struct
     ctx->network.send_port = parse_in_port_t(ctx->arg.target_port, &ctx->err);
     if(ctx->err < 0)
     {
+        printf("%d", ctx->err);
         return ERROR;
     }
     convert_address(ctx->arg.target_addr, ctx->network.send_addr, &ctx->network.send_addr_len, &ctx->err);

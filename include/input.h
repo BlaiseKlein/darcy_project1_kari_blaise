@@ -6,7 +6,19 @@
 #define INPUT_H
 
 #include "app_types.h"
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wswitch-default"
+#ifdef __clang__
+    #pragma clang diagnostic push
+    #pragma clang diagnostic ignored "-Wreserved-macro-identifier"
+    #pragma clang diagnostic ignored "-Wreserved-identifier"
+    #pragma clang diagnostic ignored "-Wdocumentation-unknown-command"
+#endif
 #include <SDL2/SDL.h>
+#pragma GCC diagnostic pop
+#ifdef __clang__
+    #pragma clang diagnostic pop
+#endif
 #include <fcntl.h>
 #include <stdio.h>
 #include <time.h>
