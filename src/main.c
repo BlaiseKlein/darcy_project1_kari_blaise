@@ -83,6 +83,7 @@ int main(int argc, char *argv[])
             {READ_KEYBOARD,           READ_NETWORK,            read_network           },
             {READ_KEYBOARD,           SAFE_CLOSE,              safe_close             },
             {READ_TIMER,              READ_NETWORK,            read_network           },
+            {READ_TIMER,              SAFE_CLOSE,              safe_close             },
             {READ_CONTROLLER,         READ_NETWORK,            read_network           },
             {READ_CONTROLLER,         SAFE_CLOSE,              safe_close             },
             {READ_NETWORK,            HANDLE_PACKET,           handle_packet          },

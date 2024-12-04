@@ -130,9 +130,17 @@ enum move_direction getKeyboardInput(void)
 enum move_direction getTimer(void)
 
 {
-    const int max           = 50;
+    int ch;
+
+    const int max           = 99;
     const int direction_max = 5;
     int       randomNumber  = rand() % max;    // Generate a number between 0 and 5
+    nodelay(stdscr, TRUE);
+    ch = getch();
+    if(ch == 'q')
+    {
+        return EXIT;
+    }
     if(randomNumber < direction_max)
     {
         switch(randomNumber)
