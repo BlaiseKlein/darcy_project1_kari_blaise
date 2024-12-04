@@ -271,6 +271,10 @@ static p101_fsm_state_t read_input(const struct p101_env *env, struct p101_error
     {
         return READ_CONTROLLER;
     }
+    if(ctx->input.type == TIMER)
+    {
+        return READ_TIMER;
+    }
     return ERROR;
 }
 
