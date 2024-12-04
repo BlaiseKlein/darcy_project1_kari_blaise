@@ -235,7 +235,7 @@ static p101_fsm_state_t handle_packet(const struct p101_env *env, struct p101_er
     memcpy(&ctx->network.current_move, receiving, ctx->network.msg_size);
     free(receiving);
     ctx->network.current_move = ntohs(ctx->network.current_move);
-    if (ctx->network.current_move == READYTOSENDMSG)
+    if(ctx->network.current_move == READYTOSENDMSG)
     {
         ctx->net_rdy = 0;
     }

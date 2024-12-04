@@ -9,6 +9,7 @@
 #include <SDL2/SDL.h>
 #include <fcntl.h>
 #include <stdio.h>
+#include <time.h>
 void                setUpController(struct input_state *state);
 enum move_direction getControllerInput(const SDL_Event *event);
 enum move_direction getKeyboardInput(void);
@@ -102,7 +103,8 @@ static p101_fsm_state_t read_keyboard(const struct p101_env *env, struct p101_er
 
 static p101_fsm_state_t read_timer(const struct p101_env *env, struct p101_error *err, void *arg)
 {
-    struct context     *ctx = (struct context *)arg;
+    struct context     *ctx          = (struct context *)arg;
+    time_t              current_time = time(NULL);
     enum move_direction direction;
     direction = getTimer();
     if(direction == EXIT)
@@ -110,9 +112,10 @@ static p101_fsm_state_t read_timer(const struct p101_env *env, struct p101_error
         return SAFE_CLOSE;
     }
     ctx->input.direction = direction;
-    if(direction != NONE)
+    if(direction != NONE && current_time - ctx->input.last_send > 2)
     {
-        ctx->input_rdy = 1;
+        ctx->input_rdy       = 1;
+        ctx->input.last_send = current_time;
     }
 
     return READ_NETWORK;

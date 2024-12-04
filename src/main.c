@@ -187,7 +187,8 @@ static void parse_arguments(const struct p101_env *env, int argc, char *argv[], 
                 }
                 else if(strcmp(input_type, "timer") == 0)
                 {
-                    ctx->input.type = TIMER;
+                    ctx->input.type      = TIMER;
+                    ctx->input.last_send = time(NULL);
                 }
                 else
                 {

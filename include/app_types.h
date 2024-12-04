@@ -10,6 +10,7 @@
 #include <p101_fsm/fsm.h>
 #include <p101_posix/p101_unistd.h>
 #include <stdint.h>
+#include <time.h>
 
 enum application_states
 {
@@ -66,6 +67,7 @@ struct input_state
     enum controller_type type;
     SDL_GameController  *controller;
     enum move_direction  direction;
+    time_t               last_send;
 };
 
 struct network_state
