@@ -19,7 +19,7 @@ void setUpController(struct input_state *state)
     }
     if(SDL_NumJoysticks() == 0)
     {
-        printf("No hame controllers connected\n");
+        printf("No game controllers connected\n");
         SDL_Quit();
         state->controller = NULL;
     }
